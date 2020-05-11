@@ -1,0 +1,97 @@
+﻿{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.5/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.5",
+  "version": "1.0.0",
+  "id": "",
+  "packageName": "",
+  "developer": {
+    "name": "",
+    "websiteUrl": "",
+    "privacyUrl": "",
+    "termsOfUseUrl": ""
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "name": {
+    "short": "Rewards and Recognition.",
+    "full": "Teams App Template Base"
+  },
+  "description": {
+    "short": "Rewards and recognition.",
+    "full": "Rewards and recognition will be useful for monthly and quarterly rewards and recognition process in most workplaces. Rewards and recognition application gives an opportunity to ​Create awards ​, Nominate/endorse team members ​Transparency which fosters a culture of healthy competition among the coworkers."
+  },
+  "accentColor": "#64A2CC",
+  "bots": [
+    {
+      "botId": "",
+      "scopes": [
+        "team"
+      ],
+      "supportsFiles": false,
+      "isNotificationOnly": false
+    }
+  ],
+  "configurableTabs": [
+    {
+      "configurationUrl": "<appbaseurl>/configTab",
+      "canUpdateConfiguration": true,
+      "scopes": [
+        "team"
+      ]
+    }
+  ],
+  "composeExtensions": [
+    {
+      "botId": "",
+      "canUpdateConfiguration": false,
+      "commands": [
+        {
+          "id": "Nominate",
+          "title": "Members",
+          "description": "Search nominated results",
+          "parameters": [
+            {
+              "name": "searchText",
+              "title": "Search",
+              "description": "Search"
+            }
+          ],
+          "context": [
+            "compose"
+          ],
+          "initialRun": true
+        },
+        {
+          "id": "Nominate awards",
+          "type": "action",
+          "title": "Nominate",
+          "description": "To nominate a member",
+          "initialRun": true,
+          "fetchTask": true,
+          "context": [
+            "compose"
+          ],
+          "parameters": [
+            {
+              "name": "yourResponses",
+              "title": "yourResponses",
+              "description": "Add a qna pair"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "permissions": [
+    "identity",
+    "messageTeamMembers"
+  ],
+  "validDomains": [
+  ],
+  "webApplicationInfo": {
+    "id": "",
+    "resource": ""
+  }
+}
