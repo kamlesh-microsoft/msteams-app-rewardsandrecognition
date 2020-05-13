@@ -42,7 +42,7 @@ interface IAwardsState {
 
 interface IProps extends WithTranslation {
     teamId: string | undefined,
-    onModifyAward: (totalAwards : number) => void
+    onModifyAward: (totalAwards: number) => void
 }
 
 /** Component for displaying on award details. */
@@ -266,11 +266,8 @@ class ManageAwards extends React.Component<IProps, IAwardsState> {
                             {this.state.awards.length === 0 &&
                                 <Flex gap="gap.small" >
                                     <Flex.Item align="center">
-                                        <Layout
-                                            styles={{
-                                                maxWidth: '50px',
-                                            }}
-                                            renderMainArea={() => <Image fluid src={this.appUrl + "/content/InformationIcon.png"} />}
+                                        <Layout className="manage-award-icon "
+                                            renderMainArea={() => <Image fluid src={this.appUrl + "/content/HelpIcon.png"} />}
                                         />
                                     </Flex.Item>
                                     <Flex.Item >
@@ -299,6 +296,9 @@ class ManageAwards extends React.Component<IProps, IAwardsState> {
                         />
                     </div>}
                     {(this.state.showAddAwards === false && this.state.showEditAwards === false) && <Flex>
+                        {this.state.message !== undefined && <Layout className="manage-award-icon "
+                            renderMainArea={() => <Image fluid src={this.appUrl + "/content/SuccessIcon.png"} />}
+                        />}
                         <Text content={this.state.message} success />
                         {this.state.awards.length > 0 && <Flex.Item push>
                             <Text align="end" content={t('lastUpdatedOn', { time: new Date(this.state.awards[0].timestamp) })} />

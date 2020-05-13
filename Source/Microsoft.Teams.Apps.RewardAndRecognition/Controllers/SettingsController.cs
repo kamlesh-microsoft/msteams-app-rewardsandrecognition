@@ -40,7 +40,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Controllers
         /// Get bot setting to client application.
         /// </summary>
         /// <returns>Bot id.</returns>
-        [HttpGet("GetBotSettings")]
+        [HttpGet("botsettings")]
         public IActionResult GetBotSettings()
         {
             try

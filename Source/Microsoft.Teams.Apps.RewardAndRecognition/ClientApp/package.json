@@ -16,7 +16,12 @@
     "react-dom": "^16.10.2",
     "react-i18next": "11.3.4",
     "react-router": "^5.1.2",
-    "react-router-dom": "^5.1.2"
+    "react-router-dom": "^5.1.2",
+    "msteams-ui-components-react": "^0.8.4",
+    "msteams-ui-icons-core": "^0.4.2",
+    "msteams-ui-icons-react": "^0.4.2",
+    "msteams-ui-styles-core": "^0.8.2",
+    "typestyle": "^2.0.4"
   },
   "scripts": {
     "start": "react-scripts start",

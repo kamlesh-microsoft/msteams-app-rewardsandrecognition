@@ -291,6 +291,10 @@ class PublishAward extends React.Component<WithTranslation, IState>
                     this.setState({ openDialog: true })
                     this.setState({ isWinnerCardSent: true })
                 }
+
+                await this.getRewardCycle();
+                await this.getPublishAwardDetails();
+                await this.validateUserProfileInTeam();
             }
         }
         else {
@@ -300,9 +304,6 @@ class PublishAward extends React.Component<WithTranslation, IState>
 
     updatePublishState = async () => {
         this.setState({ openDialog: false, isNominationPriviewAvailable: false})
-        await this.getRewardCycle();
-        await this.getPublishAwardDetails();
-        await this.validateUserProfileInTeam();
     }
 
     /**
@@ -359,21 +360,6 @@ class PublishAward extends React.Component<WithTranslation, IState>
         });
     }
 
-    /**
-   * Renders the component
-   */
-    public render() {
-        const { t } = this.props;
-        return (
-            <div>
-                {this.getHeader(t)}
-                <div>
-                    {this.getWrapperPage(t)}
-                </div>
-            </div>
-        );
-    }
-
     openPublishDialog = () => this.setState({ openDialog: true })
     closePublishDialog = () => this.setState({ openDialog: false })
 
@@ -392,45 +378,32 @@ class PublishAward extends React.Component<WithTranslation, IState>
         }
     }
 
-    private getHeader = (t: any) => {
-        if (!this.state.Loader && this.state.isUserPartOfTeam) {
-            return (<table className="publish-award-table-header">
-                <tr>
-                    <td align="left">
-                        <div className="publish-award-header-page">
-                            {this.currentAwardCycleDateRange != "" && <Flex column gap="gap.large" hAlign="start" key="header">
-                                <Text weight="bold" align="center" className="publish-award-awardcycle-header" content={t('rewardCycleText') + this.currentAwardCycleDateRange} />
-                            </Flex>}
-                        </div>
-                    </td>
-                    <td align="right">
-                        <div className="publish-award-header-page">
-                            {this.state.isAdminUser && <Flex column gap="gap.large" hAlign="end" key="header">
-                                <div>
-                                    <Button secondary className="publish-award-button" onClick={() => this.onConfigureAdminButtonClick(t)} content={t('configureAdminTitle')}></Button>
-                                    <Button className="publish-award-button" content={t('manageAwardButtonText')} onClick={() => this.onManageAwardButtonClick(t)} />
-                                    <Dialog
-                                        cancelButton={t('cancelButtonText')}
-                                        confirmButton={<Button primary content={t('confirmButtonText')}></Button>}
-                                        content={this.getPublishConfirmationPage()}
-                                        header={t('publishResultHeaderText')}
-                                        trigger={<Button primary disabled={this.state.selectedNominees.length === 0} content={t('grantAwardButtonText')}></Button>}
-                                        onConfirm={() => this.onPublishResultButtonClick(t)} />
-                                    {this.state.openDialog &&
-                                        <Dialog
-                                            open={this.state.openDialog}
-                                            header={t('publishResultHeaderText')}
-                                            content={this.state.isWinnerCardSent ? t('resultPublishSuccessMessage') : t('resultPublishFailedMessage')}
-                                            confirmButton={<Button primary onClick={this.updatePublishState} content={t('buttonTextOk')}></Button>}
-                                            headerAction={<Icon name="close" onClick={this.closePublishDialog} />}
-                                        />}
-                                </div>
-                            </Flex>}
-                        </div>
-                    </td>
-                </tr>
-            </table>);
-        }
+    private pageHeader = (t: any) => {
+        return (<Flex gap="gap.small" >
+            {this.currentAwardCycleDateRange != "" && <Text weight="bold" align="center" content={t('rewardCycleText') + this.currentAwardCycleDateRange} />}
+            {this.state.isAdminUser &&
+                <>
+                    <Flex.Item push>
+                    <Button secondary className="publish-award-button" onClick={() => this.onConfigureAdminButtonClick(t)} content={t('configureAdminTitle')}></Button>
+                    </Flex.Item>
+                <Button className="publish-award-button" content={t('manageAwardButtonText')} onClick={() => this.onManageAwardButtonClick(t)} />
+                <Dialog
+                    cancelButton={t('cancelButtonText')}
+                    confirmButton={<Button primary content={t('confirmButtonText')}></Button>}
+                    content={this.getPublishConfirmationPage()}
+                    header={t('publishResultHeaderText')}
+                    trigger={<Button primary disabled={this.state.selectedNominees.length === 0} content={t('grantAwardButtonText')}></Button>}
+                    onConfirm={() => this.onPublishResultButtonClick(t)} />
+                {this.state.openDialog &&
+                    <Dialog
+                        open={this.state.openDialog}
+                        header={t('publishResultHeaderText')}
+                        content={this.state.isWinnerCardSent ? t('resultPublishSuccessMessage') : t('resultPublishFailedMessage')}
+                        confirmButton={<Button primary onClick={this.updatePublishState} content={t('buttonTextOk')}></Button>}
+                        headerAction={<Icon name="close" onClick={this.closePublishDialog} />}
+                    />}
+                </>}
+        </Flex>);
     }
 
     /**
@@ -458,6 +431,21 @@ class PublishAward extends React.Component<WithTranslation, IState>
         else if (!this.state.Loader && !this.state.isNominationPriviewAvailable) {
             return (<div className="publish-award-footer-page"><Alert content={t('nominationPreviewMessage')} /></div>)
         }
+    }
+
+    /**
+  * Renders the component
+  */
+    public render() {
+        const { t } = this.props;
+        return (
+            <div className="page-container">
+                {this.pageHeader(t)}
+                <div>
+                    {this.getWrapperPage(t)}
+                </div>
+            </div>
+        );
     }
 }
 

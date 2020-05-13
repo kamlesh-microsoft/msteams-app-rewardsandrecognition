@@ -41,6 +41,6 @@ export const postAward = async (data: any): Promise<any> => {
 */
 export const deleteSelectedAwards = async (awardIds: string): Promise<any> => {
 
-    let url = baseAxiosUrl + `/api/Awards/DeleteAwards?awardIds=${awardIds}`;
+    let url = baseAxiosUrl + `/api/Awards/awards?awardIds=${awardIds}`;
     return await axios.delete(url);
 }

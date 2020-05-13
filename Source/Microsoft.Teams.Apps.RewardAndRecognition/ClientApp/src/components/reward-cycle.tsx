@@ -62,16 +62,11 @@ const controlClass = mergeStyleSets({
 const RewardCycle: React.FC<IProps> = props => {
     let search = window.location.search;
     let params = new URLSearchParams(search);
-    let theme = params.get("theme");
     let telemetry = params.get("telemetry");
     let appInsights = getApplicationInsightsInstance(telemetry, browserHistory);
-    let datePickerTheme;
     let userObjectId: string | undefined;
     let userEmail: string | undefined;
-    if (theme === Constants.dark) { datePickerTheme = DarkCustomizations }
-    else if (theme === Constants.contrast) { datePickerTheme = DarkCustomizations }
-    else { datePickerTheme = DefaultCustomizations }
-
+    
     const { t } = useTranslation();
     const [startDate, setStartDate] = useState<Date | null | undefined>(null);
     const [endDate, setEndDate] = useState<Date | null | undefined>(null);
@@ -98,6 +93,7 @@ const RewardCycle: React.FC<IProps> = props => {
 
     const [loader, setLoader] = useState(true);
     const [submitLoading, setSubmitLoading] = useState(false);
+    const [datePickerTheme, setDatePickerTheme] = useState(DefaultCustomizations);
 
     useEffect(() => {
         microsoftTeams.initialize();
@@ -105,6 +101,10 @@ const RewardCycle: React.FC<IProps> = props => {
         microsoftTeams.getContext((context) => {
             userObjectId = context.userObjectId;
             userEmail = context.upn;
+            let themeContext = context.theme || "";
+            if (themeContext === Constants.dark) { setDatePickerTheme(DarkCustomizations) }
+            else if (themeContext === Constants.contrast) { setDatePickerTheme(DarkCustomizations) }
+            else { setDatePickerTheme(DefaultCustomizations) }
         });
 
         const fetchData = async () => {
@@ -146,7 +146,7 @@ const RewardCycle: React.FC<IProps> = props => {
             setLoader(false);
         };
         fetchData();
-    }, []);
+    }, [datePickerTheme]);
 
     /**
      * Handle change event for cycle start date picker.
@@ -247,7 +247,7 @@ const RewardCycle: React.FC<IProps> = props => {
             IsRecurring: rewardCycleState.isReccurringChecked ? 1 : 0,
             NumberOfOccurrences: rewardCycleState.selectedValue === Occurrence.EndAfter ? parseInt(rewardCycleState.noOfOccurence!) : 0,
             ResultPublished: cycleState.resultPublished,
-            RewardCycleState: start.getDate() === new Date().getDate() ? 1 : 0,
+            RewardCycleState: start.getDate() <= new Date().getDate() ? 1 : 0,
             CycleId: cycleState.cycleId,
             CreatedByPrincipalName: userEmail,
             RangeOfOccurrence: rewardCycleState.selectedValue,

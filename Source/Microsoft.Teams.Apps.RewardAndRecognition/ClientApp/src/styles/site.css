@@ -92,6 +92,15 @@
     margin-top: 4rem;
 }
 /* Publish award*/
+.page-container {
+    margin-left: 2rem;
+    margin-right: 2rem;
+    width: auto;
+    height: auto;
+    min-height:100vh;
+    padding: 1rem;
+}
+
 .publish-award-header-page {
     margin-right: 2.4rem;
     width: auto;
@@ -333,3 +342,7 @@
     position: relative;
 }
 
+.manage-award-icon {
+    max-width: 50px;
+    margin-right:10px;
+}

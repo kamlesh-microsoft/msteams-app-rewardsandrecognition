@@ -11,6 +11,6 @@ const baseAxiosUrl = window.location.origin;
 */
 export const getBotSetting = async (): Promise<any> => {
 
-    let url = baseAxiosUrl + `/api/Settings/GetBotSettings`;
+    let url = baseAxiosUrl + `/api/Settings/botsettings`;
     return await axios.get(url, undefined);
 }

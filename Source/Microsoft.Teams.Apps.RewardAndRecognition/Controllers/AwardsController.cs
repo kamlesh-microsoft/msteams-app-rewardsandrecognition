@@ -119,7 +119,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Controllers
         /// </summary>
         /// <param name="awardIds">User selected response Ids.</param>
         /// <returns>Returns true for successful operation.</returns>
-        [HttpDelete("deleteawards")]
+        [HttpDelete("awards")]
         public async Task<IActionResult> DeleteAsync(string awardIds)
         {
             try

@@ -27,6 +27,7 @@ class TeamsConfigPage extends React.Component<WithTranslation, IConfigState> {
             microsoftTeams.settings.setSettings({
                 entityId: "rewardandrecognition_bot_app",
                 contentUrl: this.state.url,
+                websiteUrl: this.getBaseUrl(),
                 suggestedDisplayName: this.localize("suggestedTabDisplayName"),
             });
             saveEvent.notifySuccess();

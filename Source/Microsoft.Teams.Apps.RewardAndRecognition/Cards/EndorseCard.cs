@@ -156,8 +156,8 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Cards
                                 {
                                     new AdaptiveImage
                                     {
-                                        Size = AdaptiveImageSize.Small,
-                                        Url = new Uri(string.Format(CultureInfo.InvariantCulture, "{0}/Content/InformationIcon.png", applicationBasePath?.Trim('/'))),
+                                        Size = AdaptiveImageSize.Medium,
+                                        Url = isEndorsementSuccess == true ? new Uri(string.Format(CultureInfo.InvariantCulture, "{0}/Content/SuccessIcon.png", applicationBasePath?.Trim('/'))) : new Uri(string.Format(CultureInfo.InvariantCulture, "{0}/Content/ErrorIcon.png", applicationBasePath?.Trim('/'))),
                                     },
                                 },
                             },

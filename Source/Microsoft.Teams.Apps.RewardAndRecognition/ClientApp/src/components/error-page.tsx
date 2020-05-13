@@ -19,8 +19,6 @@ class ErrorPage extends React.Component<WithTranslation> {
     /** Called once component is mounted. */
     async componentDidMount() {
         microsoftTeams.initialize();
-        microsoftTeams.getContext((context) => {
-        });
     }
 
     render() {
