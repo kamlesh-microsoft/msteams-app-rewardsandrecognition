@@ -67,6 +67,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Cards
                             Size = AdaptiveTextSize.Large,
                             Weight = AdaptiveTextWeight.Bolder,
                             Spacing = AdaptiveSpacing.Small,
+                            Wrap = true,
                         },
                         new AdaptiveTextBlock
                         {

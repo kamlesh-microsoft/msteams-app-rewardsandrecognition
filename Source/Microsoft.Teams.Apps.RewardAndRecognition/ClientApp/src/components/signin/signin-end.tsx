@@ -25,17 +25,7 @@ const SignInSimpleEnd: React.FunctionComponent = () => {
         } else if (hashParams["id_token"]) {
             // Success
             microsoftTeams.authentication.notifySuccess();
-            let search = window.location.search;
-            let params = new URLSearchParams(search);
-            let redirectUrl = params.get("redirect");
-            if (redirectUrl != 'null' || redirectUrl != null || redirectUrl !== undefined || redirectUrl !== '') {
-                console.log(redirectUrl);
-                window.location.href = redirectUrl!;
-                
-            }
-            else {
-                window.location.href = "/discover";
-            }
+            window.location.href = "/discover";
         } else {
             // Unexpected condition: hash does not contain error or access_token parameter
             microsoftTeams.authentication.notifyFailure("UnexpectedFailure");

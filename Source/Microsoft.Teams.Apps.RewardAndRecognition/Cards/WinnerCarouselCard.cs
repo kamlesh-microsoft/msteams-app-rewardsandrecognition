@@ -55,6 +55,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Cards
                             Text = $"{localizer.GetString("WinnerCardRewardCycleTitle")}: {winner.First().AwardCycle}",
                             Size = AdaptiveTextSize.Small,
                             Spacing = AdaptiveSpacing.Small,
+                            Wrap = true,
                         },
                         new AdaptiveImage
                         {
@@ -70,6 +71,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Cards
                             Size = AdaptiveTextSize.Large,
                             Weight = AdaptiveTextWeight.Bolder,
                             Spacing = AdaptiveSpacing.Small,
+                            Wrap = true,
                         },
                         new AdaptiveTextBlock
                         {

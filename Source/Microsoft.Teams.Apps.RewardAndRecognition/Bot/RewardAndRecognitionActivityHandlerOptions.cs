@@ -23,5 +23,10 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition
         /// Gets or sets application base Uri.
         /// </summary>
         public string AppBaseUri { get; set; }
+
+        /// <summary>
+        /// Gets or sets unique id of manifest.
+        /// </summary>
+        public string ManifestId { get; set; }
     }
 }

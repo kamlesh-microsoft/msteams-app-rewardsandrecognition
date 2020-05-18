@@ -36,6 +36,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition
                 options.UpperCaseResponse = configuration.GetValue<bool>("UppercaseResponse");
                 options.TenantId = configuration.GetValue<string>("Bot:TenantId");
                 options.AppBaseUri = configuration.GetValue<string>("Bot:AppBaseUri");
+                options.ManifestId = configuration.GetValue<string>("Bot:ManifestId");
             });
             services.Configure<StorageOptions>(options =>
             {

@@ -13,21 +13,13 @@ import AwardsTable from "./awards-table";
 import { getAllAwards, deleteSelectedAwards } from "../api/awards-api";
 import AddAward from '../components/add-new-award';
 import EditAward from '../components/edit-award';
+import DeleteAward from '../components/delete-award';
 import { WithTranslation, withTranslation } from "react-i18next";
 import { navigateToErrorPage } from "../helpers/utility";
+import { IAwardData } from "../models/award";
+
 
 const browserHistory = createBrowserHistory({ basename: "" });
-
-interface IAwardData {
-    teamId: string,
-    AwardId: string,
-    AwardName: string,
-    awardDescription: string,
-    awardLink: string,
-    createdBy: string,
-    createdOn: string;
-    timestamp: string;
-}
 
 interface IAwardsState {
     loader: boolean;
@@ -38,6 +30,7 @@ interface IAwardsState {
     showEditAwards: boolean;
     editAward: IAwardData | undefined;
     message: string | undefined;
+    showDeleteAwards: boolean;
 }
 
 interface IProps extends WithTranslation {
@@ -74,7 +67,8 @@ class ManageAwards extends React.Component<IProps, IAwardsState> {
             showAddAwards: false,
             showEditAwards: false,
             editAward: undefined,
-            message: undefined
+            message: undefined,
+            showDeleteAwards: false
         }
     }
 
@@ -120,7 +114,7 @@ class ManageAwards extends React.Component<IProps, IAwardsState> {
      * Handle back button click.
      */
     onBackButtonClick = () => {
-        this.setState({ showAddAwards: false, showEditAwards: false, selectedAwards: [] });
+        this.setState({ showAddAwards: false, showEditAwards: false, selectedAwards: [], showDeleteAwards: false });
         this.getAwards();
     }
 
@@ -183,39 +177,20 @@ class ManageAwards extends React.Component<IProps, IAwardsState> {
     /**
     *Deletes selected awards
     */
-    handleDeleteButtonClick = async () => {
+    handleDeleteButtonClick = () => {
         this.appInsights.trackEvent({ name: `Delete award` }, { User: this.userObjectId });
-        this.appInsights.trackTrace({ message: `Delete award - Initiated request`, properties: { User: this.userObjectId }, severityLevel: SeverityLevel.Information });
-        let awardIds = this.state.selectedAwards.join(',');
-        let deletionResult = await deleteSelectedAwards(awardIds);
-
-        if (deletionResult.status === 200 && deletionResult.data) {
-            this.appInsights.trackTrace({ message: `'Delete award' - Request success`, properties: { User: this.userObjectId }, severityLevel: SeverityLevel.Information });
-            let awards = this.state.awards.filter((award) => {
-                return !this.state.selectedAwards.includes(award.AwardId);
-            });
-
-            this.setState({
-                awards: awards,
-                filteredAwards: awards,
-                selectedAwards: []
-            })
-            this.onSuccess("delete");
-        }
-        else {
-            this.appInsights.trackTrace({ message: `'Delete award' - Request failed`, properties: { User: this.userObjectId }, severityLevel: SeverityLevel.Information });
-        }
+        this.setState({ showDeleteAwards: true });
     }
 
     onSuccess = (operation: string) => {
         if (operation === "add") {
-            this.setState({ message: this.translate('successAddAward'), showAddAwards: false, showEditAwards: false, selectedAwards: [] });
+            this.setState({ message: this.translate('successAddAward'), showAddAwards: false, showEditAwards: false, selectedAwards: [], showDeleteAwards: false });
         }
         else if (operation === "delete") {
-            this.setState({ message: this.translate('successDeleteAward'), showAddAwards: false, showEditAwards: false, selectedAwards: [] });
+            this.setState({ message: this.translate('successDeleteAward'), showAddAwards: false, showEditAwards: false, selectedAwards: [], showDeleteAwards: false });
         }
         else if (operation === "edit") {
-            this.setState({ message: this.translate('successEditAward'), showAddAwards: false, showEditAwards: false, selectedAwards: [] });
+            this.setState({ message: this.translate('successEditAward'), showAddAwards: false, showEditAwards: false, selectedAwards: [], showDeleteAwards: false });
         }
         this.getAwards();
     }
@@ -247,7 +222,7 @@ class ManageAwards extends React.Component<IProps, IAwardsState> {
 
             return (
                 <div>
-                    {(this.state.showAddAwards === false && this.state.showEditAwards === false) &&
+                    {(this.state.showAddAwards === false && this.state.showEditAwards === false && !this.state.showDeleteAwards) &&
                         <div className="tab-container">
                             <CommandBar
                                 isDeleteEnable={this.state.selectedAwards.length > 0}
@@ -295,8 +270,8 @@ class ManageAwards extends React.Component<IProps, IAwardsState> {
                             onSuccess={this.onSuccess}
                         />
                     </div>}
-                    {(this.state.showAddAwards === false && this.state.showEditAwards === false) && <Flex>
-                        {this.state.message !== undefined && <Layout className="manage-award-icon "
+                    {(this.state.showAddAwards === false && this.state.showEditAwards === false && !this.state.showDeleteAwards) && <Flex>
+                        {this.state.message !== undefined && <Layout className="manage-award-icon"
                             renderMainArea={() => <Image fluid src={this.appUrl + "/content/SuccessIcon.png"} />}
                         />}
                         <Text content={this.state.message} success />
@@ -304,6 +279,15 @@ class ManageAwards extends React.Component<IProps, IAwardsState> {
                             <Text align="end" content={t('lastUpdatedOn', { time: new Date(this.state.awards[0].timestamp) })} />
                         </Flex.Item>}
                     </Flex>}
+                    {this.state.showDeleteAwards && <div>
+                        <DeleteAward
+                            awardsData={this.state.awards}
+                            selectedAwards={this.state.selectedAwards}
+                            onBackButtonClick={this.onBackButtonClick}
+                            teamId={this.props.teamId!}
+                            onSuccess={this.onSuccess}
+                        />
+                    </div>}
                 </div>
             );
         }

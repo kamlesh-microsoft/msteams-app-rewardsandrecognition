@@ -88,7 +88,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to We checked and it looks like you have already endorsed this nomination. We know that waiting is always the hardest part, but results should be out by {0}..
+        ///   Looks up a localized string similar to You have already endorsed this nomination. We know that waiting is always the hardest part, but results should be out by {0}..
         /// </summary>
         public static string AlreadyendorsedMessage {
             get {
@@ -349,7 +349,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Thanks! You’ve successfully endorsed {0} for {1}. Results will be published on {2} ..
+        ///   Looks up a localized string similar to Thanks! You’ve successfully endorsed **{0}** for **{1}**. Results will be published on **{2}** ..
         /// </summary>
         public static string SuccessfulEndorseMessage {
             get {

@@ -11,16 +11,7 @@ const SignInPage: React.FunctionComponent<RouteComponentProps> = props => {
         microsoftTeams.authentication.authenticate({
             url: window.location.origin + "/signin-simple-start",
             successCallback: () => {
-                console.log("Login succeeded!");
-                let search = window.location.search;
-                let params = new URLSearchParams(search);
-                let redirectUrl = params.get("redirect");
-                if (redirectUrl != 'null' || redirectUrl != null || redirectUrl !== undefined || redirectUrl !== '') {
-                    window.location.href = redirectUrl!;
-                }
-                else {
-                    window.location.href = "/discover";
-                }
+                window.location.href = "/discover";
             },
             failureCallback: (reason) => {
                 console.log("Login failed: " + reason);

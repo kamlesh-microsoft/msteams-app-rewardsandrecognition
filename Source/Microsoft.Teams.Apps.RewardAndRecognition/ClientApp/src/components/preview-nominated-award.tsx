@@ -50,11 +50,11 @@ const PreviewAward = (props: INominatedAwardProps): JSX.Element => {
             appInsights.trackTrace({ message: `'getRewardCycle' - Request success`, properties: { User: props.NominationAwardPreview.NominatedByObjectId }, severityLevel: SeverityLevel.Information });
         }
 
-        let nominatedDetails = await getNominationAwardDetails(props.NominationAwardPreview.TeamId!, props.NominationAwardPreview.NominatedToObjectId.join(", "), cycleId);
+        let nominatedDetails = await getNominationAwardDetails(props.NominationAwardPreview.TeamId!, props.NominationAwardPreview.NominatedToObjectId.join(", "), cycleId, props.NominationAwardPreview.AwardId!, props.NominationAwardPreview.NominatedByObjectId!);
         if (nominatedDetails.status === 200 && nominatedDetails.data) {
             appInsights.trackTrace({ message: `'getNominatedAwarddetails' - Request success`, properties: { User: props.NominationAwardPreview.NominatedByPrincipalName }, severityLevel: SeverityLevel.Information });
-            let award = nominatedDetails.data.find(element => element.AwardName === props.NominationAwardPreview.AwardName);
-            if (award != null) {
+            let isAlreadyNominated = nominatedDetails.data;
+            if (isAlreadyNominated === true) {
                 setErrorMessage(t('alreadyNominatedMessage'));
                 setSubmitLoading(false);
 
@@ -113,16 +113,16 @@ const PreviewAward = (props: INominatedAwardProps): JSX.Element => {
     return (
         <>
             <Flex hAlign="center" className="header-nomination">
-                <Text
-                    content={t('previewAwardHeader')}
-                />
-            </Flex>
+            <Text
+                content={t('previewAwardHeader')}
+            />
+        </Flex>
             <div className="div-shadow">
                 <Flex gap="gap.medium" padding="padding.medium" hAlign="start" vAlign="center">
                     <Flex.Item align="start" size="size.small" grow>
                         <Flex column gap="gap.small" vAlign="stretch">
                             <Flex space="between">
-                                <Header as="h2" content={props.NominationAwardPreview.AwardName} />
+                                <Header as="h2" className="word-break" content={props.NominationAwardPreview.AwardName} />
                             </Flex>
                         </Flex>
                     </Flex.Item>
@@ -150,11 +150,11 @@ const PreviewAward = (props: INominatedAwardProps): JSX.Element => {
                         </Flex>
                     </Flex.Item>
                 </Flex>
-                <Flex gap="gap.medium" padding="padding.medium" hAlign="start" vAlign="center" className="word-break">
+                <Flex gap="gap.medium" padding="padding.medium" hAlign="start" vAlign="center">
                     <Flex.Item align="start" size="size.small" grow>
                         <Flex column gap="gap.small" vAlign="stretch">
                             <Flex space="between">
-                                <Text content={props.NominationAwardPreview.ReasonForNomination} />
+                                <Text content={t('nominatedForText') + props.NominationAwardPreview.ReasonForNomination} />
                             </Flex>
                         </Flex>
                     </Flex.Item>
@@ -165,7 +165,7 @@ const PreviewAward = (props: INominatedAwardProps): JSX.Element => {
                     {errorMessage !== null && <Text className="small-margin-left" content={errorMessage} error />}
                 </Flex>
             </div>
-            <div className="add-form-button-container">
+            <div className="tab-footer">
                 <div>
                     <Flex space="between">
                         <Button icon="icon-chevron-start"

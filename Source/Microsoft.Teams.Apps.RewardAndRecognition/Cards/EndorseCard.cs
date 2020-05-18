@@ -168,7 +168,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Cards
                                 {
                                     new AdaptiveTextBlock
                                     {
-                                        Text = isEndorsementSuccess == true ? localizer.GetString("SuccessfulEndorseMessage", awardName, nominatedToName, endCycleDate) : localizer.GetString("AlreadyendorsedMessage", endCycleDate),
+                                        Text = isEndorsementSuccess == true ? localizer.GetString("SuccessfulEndorseMessage", nominatedToName, awardName, endCycleDate) : localizer.GetString("AlreadyendorsedMessage", endCycleDate),
                                         Wrap = true,
                                         Size = AdaptiveTextSize.Default,
                                     },

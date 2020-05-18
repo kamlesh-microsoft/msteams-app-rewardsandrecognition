@@ -364,7 +364,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition
                 {
                     case Constants.SaveAdminDetailsAction:
                         mentionActivity = await CardHelper.GetMentionActivityAsync(valuesfromTaskModule.AdminPrincipalName.Split(",").ToList(), turnContext.Activity.From.AadObjectId, valuesfromTaskModule.TeamId, turnContext, this.localizer, this.logger, cancellationToken);
-                        var cardDetail = await turnContext.SendActivityAsync(MessageFactory.Attachment(AdminCard.GetAdminCard(this.localizer, valuesfromTaskModule)));
+                        var cardDetail = await turnContext.SendActivityAsync(MessageFactory.Attachment(AdminCard.GetAdminCard(this.localizer, valuesfromTaskModule, this.options.Value.ManifestId)));
                         turnContext.Activity.Conversation.Id = $"{turnContext.Activity.Conversation.Id};messageid={cardDetail.Id}";
                         await turnContext.SendActivityAsync(mentionActivity);
                         this.logger.LogInformation("R&R admin has been configured");
@@ -375,7 +375,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition
 
                     case Constants.UpdateAdminDetailCommand:
                         mentionActivity = await CardHelper.GetMentionActivityAsync(valuesfromTaskModule.AdminPrincipalName.Split(",").ToList(), turnContext.Activity.From.AadObjectId, valuesfromTaskModule.TeamId, turnContext, this.localizer, this.logger, cancellationToken);
-                        notificationCard = MessageFactory.Attachment(AdminCard.GetAdminCard(this.localizer, valuesfromTaskModule));
+                        notificationCard = MessageFactory.Attachment(AdminCard.GetAdminCard(this.localizer, valuesfromTaskModule, this.options.Value.ManifestId));
                         notificationCard.Id = turnContext.Activity.Conversation.Id.Split(';')[1].Split("=")[1];
                         notificationCard.Conversation = turnContext.Activity.Conversation;
                         await turnContext.UpdateActivityAsync(notificationCard);

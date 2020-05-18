@@ -64,20 +64,20 @@
 }
 
 .div-shadow {
-    margin-top: 4rem;
+    margin-top: 2rem;
     border: 1px solid #E2E2E2;
     box-shadow: 0 0 2rem 0 rgba(0,0,0,0.15);
     border-radius: 0.5rem;
     border-radius: 0.5rem;
     height: auto;
     width: auto;
-    margin-left: 4rem;
-    margin-right: 4rem;
+    margin-left: 2rem;
+    margin-right: 2rem;
 }
 
 .image-size-alignment {
-    width: 11rem;
-    height: 5rem;
+    width: 11rem !important;
+    height: 10rem !important;
 }
 
 .word-break {
@@ -89,16 +89,19 @@
 }
 
 .header-nomination {
-    margin-top: 4rem;
+    margin-top: 2rem;
 }
 /* Publish award*/
 .page-container {
-    margin-left: 2rem;
-    margin-right: 2rem;
-    width: auto;
-    height: auto;
-    min-height:100vh;
+    width: 100%;
+    height: 99vh;
     padding: 1rem;
+}
+
+.publish-table-container {
+    height: 98vh;
+    width: inherit;
+    overflow: auto;
 }
 
 .publish-award-header-page {
@@ -111,7 +114,7 @@
 }
 
 .publish-award-table-header {
-    width: 100%!important;
+    width: 100% !important;
 }
 
 .publish-award-awardcycle-header {
@@ -200,11 +203,17 @@
     bottom: 2rem;
 }
 
-.description-text-area {
-    height: 12rem !important;
+.reasonfornomination-text-area {
+    height: auto;
+    min-height:7rem;
 }
+
+.awardedTo-dropdown-maxheight {
+    max-height: 5rem !important;
+}
+
 .response-text-area {
-    height: 9rem !important;
+    height: 10rem !important;
 }
 
 .max-error-message {
@@ -253,7 +262,7 @@
     height: 2.2rem;
 }
 
-.search-bar-margin{
+.search-bar-margin {
     width: 40rem;
 }
 
@@ -294,25 +303,31 @@
 }
 
 .darkContainer .commandbar-wrapper {
-	background-color: black;
+    background-color: black;
 }
 
 .highContrastContainer .commandbar-wrapper {
-	background-color: black;
+    background-color: black;
 }
 
 .page-footer {
-	position: fixed;
-	bottom: 0;
-	right: 0;
-	width: 100vw;
-	padding-bottom: 1.5rem;
-	padding-left: 2.5rem;
-	padding-right: 2.5rem;
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 100vw;
+    padding-bottom: 1.5rem;
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
 }
 
 .tab-container {
     height: 80vh;
+    width: auto;
+    overflow: auto;
+}
+
+.container-div-preview {
+    height: 60vh;
     width: auto;
     overflow: auto;
 }
@@ -344,5 +359,40 @@
 
 .manage-award-icon {
     max-width: 50px;
-    margin-right:10px;
+    margin-right: 10px;
+}
+
+.result-container {
+    height: 60vh;
+    width: 60vw;
+    overflow: auto;
+}
+
+.winner-dialog {
+    height: 85vh;
+    width: 65vw !important;
+}
+
+.preview-image {
+    max-width: 50px;
+    margin-bottom: 10px;
+}
+
+.success-image {
+    max-width: 20px;
+    margin-bottom: 10px;
+}
+
+.award-image-icon {
+    height: 4rem !important;
+    width: 4rem !important;
+    padding: 0.5rem;
+}
+
+.publish-table-chat {
+    max-width: 12rem;
+}
+
+.publish-table-endorse {
+    max-width: 9rem;
 }

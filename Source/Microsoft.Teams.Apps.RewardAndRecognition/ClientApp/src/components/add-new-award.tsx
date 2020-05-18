@@ -197,7 +197,7 @@ class AddAward extends React.Component<IAwardProps, IAwardState> {
                         </Flex>
                         <div className="add-form-input">
                             <Input placeholder={t('awardNamePlaceholder')}
-                                fluid required maxLength={100}
+                                fluid required maxLength={50}
                                 value={this.state.awardName}
                                 onChange={this.handleInputNameChange}
                             />

@@ -7,6 +7,7 @@ import { Table, Text, Image } from "@fluentui/react-northstar";
 import CheckboxBase from "./checkbox-base";
 import { useTranslation } from 'react-i18next';
 import "../styles/site.css";
+import { getBaseUrl } from "../helpers/utility";
 
 interface IAwardsTableProps {
     showCheckbox: boolean,
@@ -21,7 +22,7 @@ const AwardsTable: React.FunctionComponent<IAwardsTableProps> = props => {
         items: props.showCheckbox === true ?
             [
                 { content: <div />, key: "check-box", className: "table-checkbox-cell" },
-                { content: <div />, key: "image", className: "table-image-cell"  },
+                { content: <div />, key: "image", className: "table-image-cell" },
                 {
                     content: <Text weight="regular" content={t('awardName')} />, key: "response"
                 },
@@ -40,8 +41,11 @@ const AwardsTable: React.FunctionComponent<IAwardsTableProps> = props => {
             style: {},
             items: props.showCheckbox === true ?
                 [
-                    { content: <CheckboxBase onCheckboxChecked={props.onCheckBoxChecked} value={value.AwardId} />, key: index + "1", className: "table-checkbox-cell"},
-                    { content: <Image avatar src={value.awardLink} />, key: index + "2", className: "table-image-cell" },
+                    { content: <CheckboxBase onCheckboxChecked={props.onCheckBoxChecked} value={value.AwardId} />, key: index + "1", className: "table-checkbox-cell" },
+                    {
+                        content: <Image alt="NA" className="award-image-icon" fluid src={(value.awardLink === null || value.awardLink === "") ? getBaseUrl() + "/content/DefaultAwardImage.png" : value.awardLink} />
+                        , key: index + "2", className: "table-image-cell"
+                    },
                     { content: <Text content={value.AwardName} title={value.AwardName} />, key: index + "3", truncateContent: true },
                     { content: <Text content={value.awardDescription} title={value.awardDescription} />, key: index + "4", truncateContent: true }
                 ]

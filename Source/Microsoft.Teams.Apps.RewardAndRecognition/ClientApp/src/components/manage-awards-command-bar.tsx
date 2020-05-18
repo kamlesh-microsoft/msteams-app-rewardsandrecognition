@@ -62,14 +62,7 @@ interface ICommandbarState {
 			<Flex gap="gap.small" className="commandbar-wrapper">
 				<Button icon="add" content={t('addButtonText')} text className="add-new-button" onClick={() => this.props.onAddButtonClick()} />
 				<Button icon="edit" content={t('editButtonText')} text disabled={!this.props.isEditEnable} className="edit-button" onClick={() => this.props.onEditButtonClick()} />
-				<Dialog
-					cancelButton={t('cancelButtonText')}
-					confirmButton={t('confirmButtonText')}
-					content={t('dialogConfirmText')}
-					header={t('dialogConfirmHeader')}
-					trigger={<Button icon="trash-can" content={t('deleteButtonText')} text disabled={!this.props.isDeleteEnable} className="delete-button" />}
-					onConfirm={this.props.onDeleteButtonClick}
-				/>
+                <Button icon="trash-can" content={t('deleteButtonText')} text disabled={!this.props.isDeleteEnable} className="delete-button" onClick={() => this.props.onDeleteButtonClick()} />
 				<Flex.Item push>
 					<div className="search-bar-margin">
 						<Input

@@ -68,18 +68,20 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Controllers
         }
 
         /// <summary>
-        /// This method is used to fetch nomination details for a given team Id and aadObjectId.
+        /// This method is used to fetch nomination details.
         /// </summary>
         /// <param name="teamId">Team Id.</param>
         /// <param name="aadObjectId">Azure active directory object Id.</param>
         /// <param name="cycleId">Active reward cycle id.</param>
-        /// <returns>Nomination details.</returns>
+        /// <param name="awardId">Award unique id.</param>
+        /// <param name="nominatedByObjectId">Azure active directory object Id of nominator.</param>
+        /// <returns>Returns true if same group of user already nominated, else return false.</returns>
         [HttpGet("nominationdetail")]
-        public async Task<IActionResult> GetNominationDetailsAsync(string teamId, string aadObjectId, string cycleId)
+        public async Task<IActionResult> GetNominationDetailsAsync(string teamId, string aadObjectId, string cycleId, string awardId, string nominatedByObjectId)
         {
             try
             {
-                var nominationDetails = await this.storageProvider.GetNominateDetailsAsync(teamId, aadObjectId, cycleId);
+                var nominationDetails = await this.storageProvider.GetNominateDetailsAsync(teamId, aadObjectId, cycleId, awardId, nominatedByObjectId);
                 return this.Ok(nominationDetails);
             }
             catch (Exception ex)

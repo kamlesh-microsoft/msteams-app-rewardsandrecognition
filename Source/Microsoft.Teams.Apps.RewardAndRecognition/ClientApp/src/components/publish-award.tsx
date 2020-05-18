@@ -6,7 +6,7 @@ import * as React from "react";
 import { SeverityLevel } from "@microsoft/applicationinsights-web";
 import * as microsoftTeams from "@microsoft/teams-js";
 import { createBrowserHistory } from "history";
-import { Button, Loader, Flex, Text, themes, Dialog, Alert, Icon } from "@fluentui/react-northstar";
+import { Button, Loader, Flex, Text, themes, Dialog, Icon, Image } from "@fluentui/react-northstar";
 import { getAllAwardNominations, publishAwardNominations } from "../api/nominate-awards-api";
 import { getRewardCycle, setRewardCycle } from "../api/reward-cycle-api";
 import { sendWinnerNotification } from "../api/notification-api";
@@ -41,6 +41,9 @@ interface IState {
     isWinnerCardSent: boolean;
     isAdminUser: boolean;
     isPublishedAwards: boolean;
+    activeCycleId: string;
+    isRewardCycleConfigured: boolean;
+    currentAwardCycleDateRange: string | "";
 }
 
 const browserHistory = createBrowserHistory({ basename: "" });
@@ -55,10 +58,9 @@ class PublishAward extends React.Component<WithTranslation, IState>
     userEmail?: any = null;
     userObjectId?: string = "";
     teamId?: string | null;
-    activeCycleId: string | "";
     botId: string;
     appBaseUrl: string;
-    currentAwardCycleDateRange?: string | "";
+    appUrl: string = (new URL(window.location.href)).origin;
 
     constructor(props: any) {
         super(props);
@@ -79,6 +81,9 @@ class PublishAward extends React.Component<WithTranslation, IState>
             isWinnerCardSent: false,
             isAdminUser: false,
             isPublishedAwards: false,
+            activeCycleId: "",
+            isRewardCycleConfigured: false,
+            currentAwardCycleDateRange: "",
         };
 
         let search = window.location.search;
@@ -88,8 +93,6 @@ class PublishAward extends React.Component<WithTranslation, IState>
         this.teamId = params.get("teamId");
         this.botId = '';
         this.appBaseUrl = window.location.origin;
-        this.currentAwardCycleDateRange = "";
-        this.activeCycleId = "";
     }
 
     /** Called once component is mounted. */
@@ -103,12 +106,12 @@ class PublishAward extends React.Component<WithTranslation, IState>
 
         let flag = await validateUserPartOfTeam(this.teamId!, this.userObjectId!)
         if (flag) {
-        await this.getBotSetting();
-        this.appInsights = getApplicationInsightsInstance(this.telemetry, browserHistory);
-        await this.validateUserProfileInTeam();
-        await this.getRewardCycle();
-        if (this.activeCycleId !== undefined || this.activeCycleId !== "") {
-            await this.getPublishAwardDetails();
+            await this.getBotSetting();
+            this.appInsights = getApplicationInsightsInstance(this.telemetry, browserHistory);
+            await this.validateUserProfileInTeam();
+            await this.getRewardCycle();
+            if (this.state.activeCycleId !== undefined || this.state.activeCycleId !== "") {
+                await this.getPublishAwardDetails();
             }
         }
         else {
@@ -133,7 +136,7 @@ class PublishAward extends React.Component<WithTranslation, IState>
 
     submitHandler = async (err, result) => {
         this.appInsights.trackTrace(`Submit handler - err: ${err} - result: ${result}`);
-        await this.updatePublishState();
+        await this.updatePreviewState();
     };
 
     /**
@@ -145,11 +148,17 @@ class PublishAward extends React.Component<WithTranslation, IState>
         if (response.status === 200 && response.data) {
             this.appInsights.trackTrace({ message: `'getRewardCycle' - Request success`, properties: { User: this.userObjectId }, severityLevel: SeverityLevel.Information });
             let rewardcycle = response.data;
-            this.currentAwardCycleDateRange = (moment(rewardcycle.rewardCycleStartDate).format("MMMM Do YYYY") + " to " + moment(rewardcycle.rewardCycleEndDate).format("MMMM Do YYYY")).toString();
-            this.activeCycleId = rewardcycle.cycleId;
-
             this.setState({
-                activeAwardCycle: rewardcycle
+                activeAwardCycle: rewardcycle,
+                activeCycleId: rewardcycle.cycleId,
+                isRewardCycleConfigured: true,
+                currentAwardCycleDateRange: (moment(rewardcycle.rewardCycleStartDate).format("MMMM Do YYYY") + " to " + moment(rewardcycle.rewardCycleEndDate).format("MMMM Do YYYY")).toString()
+            });
+        }
+        else {
+            this.setState({
+                isRewardCycleConfigured: false,
+                currentAwardCycleDateRange: ""
             });
         }
     }
@@ -250,7 +259,7 @@ class PublishAward extends React.Component<WithTranslation, IState>
                     NominatedToObjectId: nomination.NominatedToObjectId,
                     NominatedToPrincipalName: nomination.NominatedToPrincipalName,
                     AwardLink: this.state.distinctAwards.filter(row => row.AwardId === nomination.AwardId).shift().awardLink,
-                    AwardCycle: this.currentAwardCycleDateRange,
+                    AwardCycle: this.state.currentAwardCycleDateRange,
                 };
                 selectedAwardWinner.push(results);
             }
@@ -275,6 +284,8 @@ class PublishAward extends React.Component<WithTranslation, IState>
     onPublishResultButtonClick = async (t: any) => {
         this.setState({
             selectedNominees: [],
+            isRewardCycleConfigured: false,
+            Loader: true,
         })
         let response = await this.publishAwards();
         if (response) {
@@ -292,9 +303,7 @@ class PublishAward extends React.Component<WithTranslation, IState>
                     this.setState({ isWinnerCardSent: true })
                 }
 
-                await this.getRewardCycle();
-                await this.getPublishAwardDetails();
-                await this.validateUserProfileInTeam();
+                await this.updatePreviewState();
             }
         }
         else {
@@ -303,7 +312,13 @@ class PublishAward extends React.Component<WithTranslation, IState>
     }
 
     updatePublishState = async () => {
-        this.setState({ openDialog: false, isNominationPriviewAvailable: false})
+        this.setState({ openDialog: false, isNominationPriviewAvailable: false })
+    }
+
+    updatePreviewState = async () => {
+        await this.validateUserProfileInTeam();
+        await this.getRewardCycle();
+        await this.getPublishAwardDetails();
     }
 
     /**
@@ -327,7 +342,7 @@ class PublishAward extends React.Component<WithTranslation, IState>
     */
     async getPublishAwardDetails() {
         this.appInsights.trackTrace({ message: `'getPublishAwardDetails' - Initiated request`, properties: { User: this.userObjectId }, severityLevel: SeverityLevel.Information });
-        let nominations = await getAllAwardNominations(this.teamId!, this.state.isPublishedAwards, this.activeCycleId!);
+        let nominations = await getAllAwardNominations(this.teamId!, this.state.isPublishedAwards, this.state.activeCycleId!);
         if (nominations.status === 200 && nominations.data) {
             this.appInsights.trackTrace({ message: `'getPublishAwardDetails' - Request success`, properties: { User: this.userObjectId }, severityLevel: SeverityLevel.Information });
             if (nominations.data !== null && nominations.data.length > 0) {
@@ -380,30 +395,42 @@ class PublishAward extends React.Component<WithTranslation, IState>
 
     private pageHeader = (t: any) => {
         return (<Flex gap="gap.small" >
-            {this.currentAwardCycleDateRange != "" && <Text weight="bold" align="center" content={t('rewardCycleText') + this.currentAwardCycleDateRange} />}
+            {this.state.currentAwardCycleDateRange != "" && <Text weight="bold" align="center" content={t('rewardCycleText') + this.state.currentAwardCycleDateRange} />}
             {this.state.isAdminUser &&
                 <>
                     <Flex.Item push>
-                    <Button secondary className="publish-award-button" onClick={() => this.onConfigureAdminButtonClick(t)} content={t('configureAdminTitle')}></Button>
+                        <Button secondary className="publish-award-button" onClick={() => this.onConfigureAdminButtonClick(t)} content={t('configureAdminTitle')}></Button>
                     </Flex.Item>
-                <Button className="publish-award-button" content={t('manageAwardButtonText')} onClick={() => this.onManageAwardButtonClick(t)} />
-                <Dialog
-                    cancelButton={t('cancelButtonText')}
-                    confirmButton={<Button primary content={t('confirmButtonText')}></Button>}
-                    content={this.getPublishConfirmationPage()}
-                    header={t('publishResultHeaderText')}
-                    trigger={<Button primary disabled={this.state.selectedNominees.length === 0} content={t('grantAwardButtonText')}></Button>}
-                    onConfirm={() => this.onPublishResultButtonClick(t)} />
-                {this.state.openDialog &&
+                    <Button className="publish-award-button" content={t('manageAwardButtonText')} onClick={() => this.onManageAwardButtonClick(t)} />
                     <Dialog
-                        open={this.state.openDialog}
+                        className="winner-dialog"
+                        cancelButton={t('cancelButtonText')}
+                        confirmButton={<Button primary content={t('confirmButtonText')}></Button>}
+                        content={this.getPublishConfirmationPage()}
                         header={t('publishResultHeaderText')}
-                        content={this.state.isWinnerCardSent ? t('resultPublishSuccessMessage') : t('resultPublishFailedMessage')}
-                        confirmButton={<Button primary onClick={this.updatePublishState} content={t('buttonTextOk')}></Button>}
-                        headerAction={<Icon name="close" onClick={this.closePublishDialog} />}
-                    />}
+                        trigger={<Button primary disabled={this.state.selectedNominees.length === 0} content={t('grantAwardButtonText')}></Button>}
+                        onConfirm={() => this.onPublishResultButtonClick(t)} />
+                    {this.state.openDialog &&
+                        <Dialog
+                            open={this.state.openDialog}
+                            header={t('publishResultHeaderText')}
+                            content={this.getPublishSuccessMessage(t)}
+                            confirmButton={<Button primary onClick={this.updatePublishState} content={t('buttonTextOk')}></Button>}
+                            headerAction={<Icon name="close" onClick={this.closePublishDialog} />}
+                        />}
                 </>}
         </Flex>);
+    }
+
+    private getPublishSuccessMessage(t: any) {
+        return (<Flex hAlign="center">
+            <div>
+                <div><Flex hAlign="center" vAlign="stretch">
+                    <Image className="success-image" fluid src={this.state.isWinnerCardSent ? this.appUrl + "/content/SuccessIcon.png" : this.appUrl + "/content/ErrorIcon.png"} />
+                </Flex></div>
+                <div><Text weight="bold" content={this.state.isWinnerCardSent ? t('resultPublishSuccessMessage') : t('resultPublishFailedMessage')} /></div>
+            </div>
+        </Flex>)
     }
 
     /**
@@ -416,7 +443,7 @@ class PublishAward extends React.Component<WithTranslation, IState>
                     <Loader />
                 </div>
             );
-        } else if (!this.state.Loader && this.state.isUserPartOfTeam && this.state.isNominationPriviewAvailable) {
+        } else if (!this.state.Loader && this.state.isUserPartOfTeam && this.state.isNominationPriviewAvailable && this.state.isRewardCycleConfigured) {
             return (
                 <div>
                     <PublishAwardTable showCheckbox={this.state.isAdminUser}
@@ -428,8 +455,25 @@ class PublishAward extends React.Component<WithTranslation, IState>
                 </div>
             );
         }
-        else if (!this.state.Loader && !this.state.isNominationPriviewAvailable) {
-            return (<div className="publish-award-footer-page"><Alert content={t('nominationPreviewMessage')} /></div>)
+        else if (!this.state.Loader && !this.state.isNominationPriviewAvailable && this.state.isRewardCycleConfigured) {
+            return (<Flex className="error-container" hAlign="center" vAlign="stretch">
+                <div>
+                    <div><Flex hAlign="center" vAlign="stretch">
+                        <Image className="preview-image" fluid src={this.appUrl + "/content/messages.png"} />
+                    </Flex></div>
+                    <div><Text content={t('nominationPreviewMessage')} /></div>
+                </div>
+            </Flex>)
+        }
+        else if (!this.state.Loader && !this.state.isRewardCycleConfigured) {
+            return (<Flex className="error-container" hAlign="center" vAlign="stretch">
+                <div>
+                    <div><Flex hAlign="center" vAlign="stretch">
+                        <Image className="preview-image" fluid src={this.appUrl + "/content/messages.png"} />
+                    </Flex></div>
+                    <div><Text content={t('cycleValidationMessage')} /></div>
+                </div>
+            </Flex>)
         }
     }
 
@@ -440,9 +484,11 @@ class PublishAward extends React.Component<WithTranslation, IState>
         const { t } = this.props;
         return (
             <div className="page-container">
-                {this.pageHeader(t)}
-                <div>
-                    {this.getWrapperPage(t)}
+                <div className="publish-table-container">
+                    {this.pageHeader(t)}
+                    <div>
+                        {this.getWrapperPage(t)}
+                    </div>
                 </div>
             </div>
         );

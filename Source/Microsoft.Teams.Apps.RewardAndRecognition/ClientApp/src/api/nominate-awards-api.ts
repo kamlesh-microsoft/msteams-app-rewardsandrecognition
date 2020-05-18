@@ -23,8 +23,8 @@ export const saveNominateDetails = async (nominateDetails: any): Promise<any> =>
 * @param  {String | Null} aadObjectId User azure active directory object id.
 * @param  {String | Null} cycleId Active award cycle unique id.
 */
-export const getNominationAwardDetails = async (teamId: string | null, aadObjectId: string | null, cycleId: string | null): Promise<any> => {
-    let url = baseAxiosUrl + `/api/NominateDetail/nominationdetail?teamId=${teamId}&aadObjectId=${aadObjectId}&cycleId=${cycleId}`;
+export const getNominationAwardDetails = async (teamId: string | null, aadObjectId: string | null, cycleId: string | null, awardId: string, nominatedByObjectId: string): Promise<any> => {
+    let url = baseAxiosUrl + `/api/NominateDetail/nominationdetail?teamId=${teamId}&aadObjectId=${aadObjectId}&cycleId=${cycleId}&awardId=${awardId}&nominatedByObjectId=${nominatedByObjectId}`;
     return await axios.get(url, undefined);
 }
 

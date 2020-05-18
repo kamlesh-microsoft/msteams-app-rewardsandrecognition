@@ -25,8 +25,8 @@ const PublishAwardTable: React.FunctionComponent<IPublishAwardTableProps> = prop
                 { content: < Text content={""} />, key: "check-box", className: "table-checkbox-cell" },
                 { content: <Text weight="regular" content={t('nomineesTableHeaderText')} /> },
                 { content: <Text weight="regular" content={t('nominationReasonTableHeaderText')} /> },
-                { content: <Text weight="regular" content={t('endorsedByTableHeaderText')} /> },
-                { content: <Text weight="regular" content={t('chatWithNominatorTableHeaderText')} /> }
+                { content: <Text weight="regular" content={t('endorsedByTableHeaderText')} />, className: "publish-table-endorse" },
+                { content: <Text weight="regular" content={t('chatWithNominatorTableHeaderText')} />, className: "publish-table-chat" }
             ]
             :
             [
@@ -44,9 +44,9 @@ const PublishAwardTable: React.FunctionComponent<IPublishAwardTableProps> = prop
                     { content: <CheckboxBase onCheckboxChecked={props.onCheckBoxChecked} value={value.NominationId} />, key: index + "1", className: "table-checkbox-cell" },
                     { content: <Text content={value.NominatedToName} title={value.NominatedToName} />, key: index + "2", truncateContent: true },
                     { content: <Text content={value.ReasonForNomination} title={value.ReasonForNomination} />, key: index + "3", truncateContent: true },
-                    { content: <Text content={value.EndorseCount} title={value.EndorseCount} />, key: index + "4", truncateContent: true },
+                    { content: <Text content={value.EndorseCount} title={value.EndorseCount} />, key: index + "4", truncateContent: true, className: "publish-table-endorse" },
                     {
-                        content: <Button secondary onClick={() => props.onChatButtonClick(value, t)} title={value.NominatedByName} content={t('chatButtonText')} ></Button >
+                        content: <Button secondary onClick={() => props.onChatButtonClick(value, t)} title={value.NominatedByName} content={t('chatButtonText')} ></Button >, className:"publish-table-chat"
                     }
                 ]
                 :

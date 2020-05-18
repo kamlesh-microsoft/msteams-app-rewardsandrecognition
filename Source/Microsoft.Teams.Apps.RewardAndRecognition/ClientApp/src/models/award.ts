@@ -13,3 +13,14 @@ export class AwardDetails {
     CreatedBy: string | undefined;
     CreatedOn: Date | undefined;
 }
+
+export interface IAwardData {
+    teamId: string,
+    AwardId: string,
+    AwardName: string,
+    awardDescription: string,
+    awardLink: string,
+    createdBy: string,
+    createdOn: string;
+    timestamp: string;
+}

@@ -2,7 +2,7 @@
   "awardName": "Award name",
   "awardDescription": "Award description",
   "awardLink": "Award link",
-  "awardNamePlaceholder": "Enter name",
+  "awardNamePlaceholder": "Enter name in less than 50 characters",
   "awardDescriptionPlaceholder": "Describe in less than 300 characters",
   "awardLinkPlaceholder": "Enter link",
   "addButtonText": "Add",
@@ -37,12 +37,13 @@
   "toBeAwardedToTitle": "To be awarded to",
   "toBeAwardedToPlaceHolder": "Find nominee",
   "reasonForNominationTitle": "Reason for nomination",
-  "reasonForNominationPlaceHolder": "Describe in less than 500 characters",
+  "reasonForNominationPlaceHolder": "Describe in less than 300 characters",
   "previewButtonText": "Preview",
   "nominateButton": "Nominate",
   "noMatchesFoundText": "We couldn't have any matches",
   "previewAwardHeader": "How your award will appear to the team.",
   "nominatedByText": "Nominated by ",
+  "nominatedForText": "for ",
   "errorMessage": "Something went wrong. please try again later",
   "unauthorizedAccess": "Unauthorized access",
   "manageAwardButtonText": "Manage award",
@@ -55,6 +56,7 @@
   "grantAwardButtonText": "Grant result",
   "configureAdminTitle": "Configure R&R admin",
   "winnersCountText": "Winners",
+  "winnerCountText": "Winner",
   "warningMessage": "You are not part of this team. Please contact team owner.",
   "buttonTextOk": "OK",
   "resultPublishSuccessMessage": "Result published successfully.",
@@ -75,6 +77,7 @@
   "suggestedTabDisplayName": "Rewards and Recognition",
   "nominationPreviewMessage": "No active nomination available for preview.",
   "resultPublishFailedMessage": "Result published failed.",
-  "signInButtonText": "Sign in"
+  "signInButtonText": "Sign in",
+  "awardDeleteConfirmationMessageText": "Would you like to delete the following awards?"
 
 }

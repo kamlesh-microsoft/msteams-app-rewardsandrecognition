@@ -9,6 +9,10 @@ export const checkUrl = (url: string) => {
     return (url.match(/\.(jpeg|jpg|gif|png)$/) != null);
 }
 
+export const getBaseUrl = () => {
+    return window.location.origin;
+}
+
 /**
     *Navigate to error page
 */

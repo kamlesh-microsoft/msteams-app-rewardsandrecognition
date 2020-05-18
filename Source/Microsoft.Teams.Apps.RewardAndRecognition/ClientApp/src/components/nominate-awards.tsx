@@ -16,7 +16,7 @@ import { getAllAwards } from "../api/awards-api";
 import { NominationAwardPreview } from "../models/nomination-award-preview";
 import PreviewAward from "./preview-nominated-award";
 import { getApplicationInsightsInstance } from "../helpers/app-insights";
-import { navigateToErrorPage } from "../helpers/utility";
+import { navigateToErrorPage, isNullorWhiteSpace } from "../helpers/utility";
 
 interface IState {
     loading: boolean,
@@ -32,7 +32,8 @@ interface IState {
     isSelectedAwardPresent: boolean;
     errorMessage: string | null;
     isPreviewAward: boolean;
-    awardDescription: string | undefined;
+    awardDescription: string;
+    isNoteForNomination: boolean;
 }
 
 const browserHistory = createBrowserHistory({ basename: "" });
@@ -67,6 +68,7 @@ class NominateAwards extends React.Component<WithTranslation, IState>
             errorMessage: "",
             isPreviewAward: false,
             awardDescription: "",
+            isNoteForNomination: true,
         };
 
         let search = window.location.search;
@@ -168,9 +170,14 @@ class NominateAwards extends React.Component<WithTranslation, IState>
         if (this.state.selectedAward === null) {
             this.setState({ isSelectedAwardPresent: false });
         }
+        if (isNullorWhiteSpace(this.state.reasonForNomination)) {
+            this.setState({ isNoteForNomination: false });
+
+            return;
+        }
         if (this.state.selectedMembers.length > 0 && this.state.selectedAward != null) {
             this.setState({ isPreviewAward: true, isSubmitLoading: true });
-        }
+        }        
     }
 
     /**
@@ -216,7 +223,8 @@ class NominateAwards extends React.Component<WithTranslation, IState>
 
     onNoteChange(event) {
         this.setState({
-            reasonForNomination: event.target.value
+            reasonForNomination: event.target.value,
+            isNoteForNomination: true
         });
     }
 
@@ -226,23 +234,27 @@ class NominateAwards extends React.Component<WithTranslation, IState>
             selectedMembers.push(item);
             this.setState({ selectedMembers: selectedMembers });
             if (this.state.selectedMembers.length > 0) { this.setState({ isSelectedMembersPresent: true }); }
-            return "";
 
+            return "";
         },
+
         onRemove: item => {
             let selectedMembers = this.state.selectedMembers;
             selectedMembers.splice(selectedMembers.indexOf(item), 1);
             this.setState({ selectedMembers: selectedMembers });
+
             return "";
         }
     };
 
     onAwardsSelected = {
         onAdd: item => {
-            let award = this.state.awards.find(element => element.key === item.key)
-            this.setState({ selectedAward: award, awardDescription: award.description, isSelectedAwardPresent: true});
+            if (item) {
+                let award = this.state.awards.find(element => element.key === item.key)
+                this.setState({ selectedAward: award, awardDescription: award.description, isSelectedAwardPresent: true });    
+            }
+            
             return "";
-
         }
     }
 
@@ -284,7 +296,7 @@ class NominateAwards extends React.Component<WithTranslation, IState>
                     <Flex gap="gap.large" vAlign="center" className="title">
                         <Text content={t('awardDescription')} />
                     </Flex>
-                    <TextArea fluid
+                    <TextArea fluid disabled
                         className="response-text-area"
                         value={this.state.awardDescription}
                     />
@@ -312,10 +324,13 @@ class NominateAwards extends React.Component<WithTranslation, IState>
                 <div>
                     <Flex gap="gap.large" vAlign="center" className="title">
                         <Text content={t('reasonForNominationTitle')} />
+                        <Flex.Item push>
+                            {this.getRequiredFieldError(this.state.isNoteForNomination, t)}
+                        </Flex.Item>
                     </Flex>
                     <TextArea fluid
-                        maxLength={500}
-                        className="description-text-area"
+                        maxLength={300}
+                        className="reasonfornomination-text-area"
                         placeholder={t('reasonForNominationPlaceHolder')}
                         value={this.state.reasonForNomination}
                         onChange={this.onNoteChange.bind(this)}

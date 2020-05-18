@@ -162,10 +162,24 @@ class ConfigurationAdminPage extends React.Component<WithTranslation, IState>
 
     getA11SelectionMessage = {
         onAdd: item => {
-            this.setState({ selectedMember: item, isSelectedMemberPresent: true });
+            if (item) {
+                this.setState({ selectedMember: item, isSelectedMemberPresent: true });
+            }
             return "";
         }
     };
+
+    onSearchQueryChange = (event: any, props: any) => {
+        if (props.value) {
+            let searchQuery = props.searchQuery;
+            let selectedItem = props.items.find((item) => item.header.toUpperCase() === searchQuery.toUpperCase());
+            if (selectedItem) {
+                this.setState({ selectedMember: selectedItem, isSelectedMemberPresent: true });
+            } else {
+                this.setState({ selectedMember: null, isSelectedMemberPresent: false });
+            }
+        }
+    }
 
     /**
     *Returns text component containing error message for failed name field validation
@@ -205,7 +219,7 @@ class ConfigurationAdminPage extends React.Component<WithTranslation, IState>
                                 placeholder={t('selectTeamMemberPlaceHolder')}
                                 getA11ySelectionMessage={this.getA11SelectionMessage}
                                 noResultsMessage={t('noMatchesFoundText')}
-                                value={this.state.selectedMember}
+                                onSearchQueryChange={this.onSearchQueryChange}
                             />
                         </Flex.Item>
                     </Flex>

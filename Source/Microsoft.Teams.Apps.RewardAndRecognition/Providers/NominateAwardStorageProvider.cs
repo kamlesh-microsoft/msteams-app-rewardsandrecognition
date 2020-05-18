@@ -6,6 +6,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Providers
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Options;
     using Microsoft.Teams.Apps.RewardAndRecognition.Models;
@@ -54,16 +55,20 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Providers
         /// <param name="teamId">Team Id.</param>
         /// <param name="nominatedToObjectId">Azure active directory object Id.</param>
         /// <param name="awardCycleId">Active award cycle.</param>
+        /// <param name="awardId">Award unique id.</param>
+        /// <param name="nominatedByObjectId">Azure active directory object Id of nominator.</param>
         /// <returns>Nomination details.</returns>
-        public async Task<IEnumerable<NominateEntity>> GetNominateDetailsAsync(string teamId, string nominatedToObjectId, string awardCycleId)
+        public async Task<bool> GetNominateDetailsAsync(string teamId, string nominatedToObjectId, string awardCycleId, string awardId, string nominatedByObjectId)
         {
             await this.EnsureInitializedAsync();
             var nominateEntity = new List<NominateEntity>();
             string partitionKeyCondition = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, teamId);
-            string nominatedToAadobjectCondition = TableQuery.GenerateFilterCondition("NominatedToObjectId", QueryComparisons.Equal, nominatedToObjectId);
             string activeCycleCondition = TableQuery.GenerateFilterCondition("RewardCycleId", QueryComparisons.Equal, awardCycleId);
-            string condition = TableQuery.CombineFilters(partitionKeyCondition, TableOperators.And, nominatedToAadobjectCondition);
+            string awardCondition = TableQuery.GenerateFilterCondition("AwardId", QueryComparisons.Equal, awardId);
+            string nominatedByCondition = TableQuery.GenerateFilterCondition("NominatedByObjectId", QueryComparisons.Equal, nominatedByObjectId);
+            string condition = TableQuery.CombineFilters(partitionKeyCondition, TableOperators.And, awardCondition);
             condition = TableQuery.CombineFilters(condition, TableOperators.And, activeCycleCondition);
+            condition = TableQuery.CombineFilters(condition, TableOperators.And, nominatedByCondition);
             TableQuery<NominateEntity> query = new TableQuery<NominateEntity>().Where(condition);
             TableContinuationToken tableContinuationToken = null;
 
@@ -74,7 +79,8 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Providers
                 nominateEntity.AddRange(queryResponse?.Results);
             }
             while (tableContinuationToken != null);
-            return nominateEntity;
+
+            return this.CheckDuplicateNomination(nominateEntity, nominatedToObjectId);
         }
 
         /// <summary>
@@ -149,6 +155,36 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Providers
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Check for duplicate award nomination.
+        /// </summary>
+        /// <param name="existingNominations">Existing nominations.</param>
+        /// <param name="newNomination">New nominations.</param>
+        /// <returns>Returns true if same group of user already nominated, else return false.</returns>
+        private bool CheckDuplicateNomination(List<NominateEntity> existingNominations, string newNomination)
+        {
+            bool isAlreadyNominated = false;
+            foreach (var nominees in existingNominations.Select(row => row.NominatedToObjectId))
+            {
+                if (nominees.Equals(newNomination, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+                else
+                {
+                    IEnumerable<string> existingNominees = nominees.Split(',').Select(a => a.Trim());
+                    IEnumerable<string> newNominees = newNomination.Split(',').Select(a => a.Trim());
+                    if (!existingNominees.Except(newNominees).Any() && !newNominees.Except(existingNominees).Any())
+                    {
+                        isAlreadyNominated = true;
+                        break;
+                    }
+                }
+            }
+
+            return isAlreadyNominated;
         }
     }
 }

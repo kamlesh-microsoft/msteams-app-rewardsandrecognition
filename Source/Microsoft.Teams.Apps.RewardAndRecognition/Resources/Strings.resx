@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AlreadyendorsedMessage" xml:space="preserve">
-    <value>We checked and it looks like you have already endorsed this nomination. We know that waiting is always the hardest part, but results should be out by {0}.</value>
+    <value>You have already endorsed this nomination. We know that waiting is always the hardest part, but results should be out by {0}.</value>
   </data>
   <data name="AdminHeaderText" xml:space="preserve">
     <value>Here is your new admin!</value>
@@ -194,7 +194,7 @@
     <value>* Set reward cycle</value>
   </data>
   <data name="SuccessfulEndorseMessage" xml:space="preserve">
-    <value>Thanks! You’ve successfully endorsed {0} for {1}. Results will be published on {2} .</value>
+    <value>Thanks! You’ve successfully endorsed **{0}** for **{1}**. Results will be published on **{2}** .</value>
   </data>
   <data name="WelcomeCardTitle" xml:space="preserve">
     <value>Welcome!</value>

@@ -5,10 +5,13 @@
 namespace Microsoft.Teams.Apps.RewardAndRecognition.Cards
 {
     using System.Collections.Generic;
+    using System.Globalization;
+    using System.Web;
     using AdaptiveCards;
     using Microsoft.Bot.Schema;
     using Microsoft.Extensions.Localization;
     using Microsoft.Teams.Apps.RewardAndRecognition.Models;
+    using Newtonsoft.Json;
 
     /// <summary>
     ///  This class process admin card when configured.
@@ -18,16 +21,19 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Cards
         /// <summary>
         /// Link that redirects to tab.
         /// </summary>
-        private const string GoToLink = "https://teams.microsoft.com/_#/RewardRecognition/General?";
+        private const string TabDeepLink = "https://teams.microsoft.com/l/entity/{0}/rewardandrecognition_bot_app?context={1}";
 
         /// <summary>
         /// This method will construct admin card with corresponding details.
         /// </summary>
         /// <param name="localizer">The current cultures' string localizer.</param>
         /// <param name="adminDetails">Admin details to show in card.</param>
+        /// <param name="manifestId">Unique id of manifest.</param>
         /// <returns>User welcome card.</returns>
-        public static Attachment GetAdminCard(IStringLocalizer<Strings> localizer, TaskModuleResponseDetails adminDetails)
+        public static Attachment GetAdminCard(IStringLocalizer<Strings> localizer, TaskModuleResponseDetails adminDetails, string manifestId)
         {
+            string context = HttpUtility.UrlEncode(JsonConvert.SerializeObject(new { channelId = adminDetails?.TeamId }));
+
             AdaptiveCard card = new AdaptiveCard(new AdaptiveSchemaVersion(Constants.AdaptiveCardVersion))
             {
                 Body = new List<AdaptiveElement>
@@ -62,7 +68,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Cards
                     new AdaptiveOpenUrlAction
                     {
                         Title = localizer.GetString("ManageRewardTitle"),
-                        Url = new System.Uri($"{GoToLink}threadId={adminDetails.TeamId}&ctx=channel"),
+                        Url = new System.Uri(string.Format(CultureInfo.InvariantCulture, TabDeepLink, manifestId, context)),
                     },
                 },
             };

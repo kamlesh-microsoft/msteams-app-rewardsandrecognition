@@ -7,7 +7,7 @@ import { Icon } from "office-ui-fabric-react";
 
 class ErrorPage extends React.Component<WithTranslation> {
     code: string | null = null;
-    token: string | null = null;
+    message: string | null = null;
 
     constructor(props: any) {
         super(props);
@@ -23,25 +23,34 @@ class ErrorPage extends React.Component<WithTranslation> {
 
     render() {
         const { t } = this.props;
+        if (this.code === "401") {
+            this.message = t('unauthorizedErrorMessage');
+        } else if (this.code === "403") {
+            this.message = t('forbiddenErrorMessage');
+        }
+        else {
+            this.message = t('errorMessage');
+        }
+
         return (
-                <div className="container-div">
-                    <Flex gap="gap.small" hAlign="center" vAlign="center" className="error-container">
-                        <Flex gap="gap.small" hAlign="center" vAlign="center">
-                            <Flex.Item>
-                                <div className="error-div-align">
-                                    <Icon color="red" />
+            <div className="container-div">
+                <Flex gap="gap.small" hAlign="center" vAlign="center" className="error-container">
+                    <Flex gap="gap.small" hAlign="center" vAlign="center">
+                        <Flex.Item>
+                            <div className="error-div-align">
+                                <Icon color="red" />
+                            </div>
+                        </Flex.Item>
+                        <Flex.Item grow>
+                            <Flex column gap="gap.small" vAlign="stretch">
+                                <div>
+                                    <Text weight="bold" error content={this.message} /><br />
                                 </div>
-                            </Flex.Item>
-                            <Flex.Item grow>
-                                <Flex column gap="gap.small" vAlign="stretch">
-                                    <div>
-                                        <Text weight="bold" error content={t('errorMessage')} /><br />
-                                    </div>
-                                </Flex>
-                            </Flex.Item>
-                        </Flex>
+                            </Flex>
+                        </Flex.Item>
                     </Flex>
-                </div>
+                </Flex>
+            </div>
         );
     }
 }

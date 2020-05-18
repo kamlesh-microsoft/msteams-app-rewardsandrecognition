@@ -19,8 +19,10 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Providers
         /// <param name="teamId">Team Id.</param>
         /// <param name="nominatedToObjectId">Azure active directory object Id.</param>
         /// <param name="awardCycleId">Active award cycle.</param>
-        /// <returns>Nomination details.</returns>
-        Task<IEnumerable<NominateEntity>> GetNominateDetailsAsync(string teamId, string nominatedToObjectId, string awardCycleId);
+        /// <param name="awardId">Award unique id.</param>
+        /// <param name="nominatedByObjectId">Azure active directory object Id of nominator.</param>
+        /// <returns>Returns true if same group of user already nominated, else return false.</returns>
+        Task<bool> GetNominateDetailsAsync(string teamId, string nominatedToObjectId, string awardCycleId, string awardId, string nominatedByObjectId);
 
         /// <summary>
         /// Get already nominate entity detail from storage table.

@@ -3,7 +3,7 @@
 // </copyright>
 
 import * as React from "react";
-import { Table, Text } from "@fluentui/react-northstar";
+import { Text, Flex, Grid } from "@fluentui/react-northstar";
 import "../styles/site.css";
 import { useTranslation } from 'react-i18next';
 
@@ -14,30 +14,20 @@ interface IApprovedAwardTableProps {
 
 const ApprovedAwardTable: React.FunctionComponent<IApprovedAwardTableProps> = props => {
     const { t } = useTranslation();
-    const awardsTableHeader = {
-        key: "header",
-        items:
-            [
-                { content: <Text weight="regular" content={t('awardName')} /> },
-                { content: <Text weight="regular" content={t('winnersCountText')} /> },
-            ],
-    };
 
-    let awardsTableRows = props.distinctAwards.map((value: any, index) => (
-        {
-            key: value.AwardId,
-            style: {},
-            items:
-                [
-                    { content: <Text content={value.AwardName} title={value.AwardName} />, key: index + "1", truncateContent: true },
-                    { content: <Text content={props.awardWinner.filter(a => a.AwardId === value.AwardId).length} title={props.awardWinner.filter(a => a.AwardId === value.AwardId).length} />, key: index + "2", truncateContent: true },
-                ]
-        }
-    ));
+    let gridItems = props.distinctAwards.map((value: any, index) => {
+        let winnerCount = props.awardWinner.filter(a => a.AwardId === value.AwardId).length;
+        return (
+            <Flex column padding="padding.medium">
+                <Text weight="semibold" content={value.AwardName} />
+                <Text weight="bold" content={winnerCount > 1 ? winnerCount + " " + t('winnersCountText') : winnerCount + " " + t('winnerCountText')} />
+            </Flex>
+        )
+    });
 
     return (
-        <div>
-            <Table rows={awardsTableRows} header={awardsTableHeader} className="table-cell-content" />
+        <div className="result-container">
+            <Grid columns="2" content={gridItems} />
         </div>
     );
 }
