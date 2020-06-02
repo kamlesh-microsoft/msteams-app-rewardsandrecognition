@@ -130,11 +130,12 @@ class AddAward extends React.Component<IAwardProps, IAwardState> {
                 CreatedOn: undefined
             };
 
-            this.appInsights.trackTrace({ message: `'addAward' - Initiated request`, properties: { User: this.userObjectId }, severityLevel: SeverityLevel.Information });
+            this.appInsights.trackTrace({ message: `'addAward' - Initiated request`, properties: { User: this.userObjectId }, severityLevel: SeverityLevel.Information });            
             let response = await postAward(awardDetail);
 
             if (response.status === 200 && response.data) {
                 this.appInsights.trackTrace({ message: `'addAward' - Request success`, properties: { User: this.userObjectId }, severityLevel: SeverityLevel.Information });
+                this.appInsights.trackEvent({ name: `Add award` }, { User: this.userObjectId, Team: this.props.teamId });
                 this.setState({ error: '', isSubmitLoading: false });
                 this.props.onSuccess("add");
                 return;
@@ -163,8 +164,8 @@ class AddAward extends React.Component<IAwardProps, IAwardState> {
     /**
      * Handle award link change event.
      */
-    handleInputImageChange = (event: any) => {
-        this.setState({ awardImageLink: event.target.value });
+    handleInputImageChange = (event: any) => {        
+        this.setState({ awardImageLink: (event.target.value !== "" || event.target.value !== null) ? event.target.value.trim() : null });
     }
 
     /**
@@ -189,8 +190,8 @@ class AddAward extends React.Component<IAwardProps, IAwardState> {
                         <Flex hAlign="center">
                             <Text content={this.state.error} className="field-error-message" error size="medium" />
                         </Flex>
-                        <Flex gap="gap.small">
-                            <Text content={t('awardName')} size="medium" />
+                        <Flex gap="gap.small" className="header-nomination">
+                            <Text content={t('awardName')} size="medium" /><Text content="*" className="requiredfield" error size="medium" />
                             <Flex.Item push>
                                 {this.getRequiredFieldError(this.state.isNameValuePresent, t)}
                             </Flex.Item>
@@ -205,7 +206,7 @@ class AddAward extends React.Component<IAwardProps, IAwardState> {
                     </div>
                     <div>
                         <Flex gap="gap.small">
-                            <Text content={t('awardDescription')} size="medium" />
+                            <Text content={t('awardDescription')} size="medium" /><Text content="*" className="requiredfield" error size="medium" />
                             <Flex.Item push>
                                 {this.getRequiredFieldError(this.state.isDescriptionValuePresent, t)}
                             </Flex.Item>

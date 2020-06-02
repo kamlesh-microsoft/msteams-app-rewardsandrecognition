@@ -22,8 +22,19 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Controllers
     [Authorize]
     public class NominateDetailController : BaseRewardAndRecognitionController
     {
+        /// <summary>
+        /// Instance to send logs to the Application Insights service.
+        /// </summary>
         private readonly ILogger<AwardsController> logger;
+
+        /// <summary>
+        /// Provider to search nomination details in Azure search service.
+        /// </summary>
         private readonly INominateAwardStorageProvider storageProvider;
+
+        /// <summary>
+        /// Provider for fetching information about endorsement details from storage table.
+        /// </summary>
         private readonly IEndorseDetailStorageProvider endorseStorageProvider;
 
         /// <summary>
@@ -119,10 +130,11 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Controllers
                     NominatedToObjectId = nomination.NominatedToObjectId,
                     NominatedToPrincipalName = nomination.NominatedToPrincipalName,
                     RewardCycleId = nomination.RewardCycleId,
+                    NominatedOn = nomination.NominatedOn,
                     ReasonForNomination = nomination.ReasonForNomination,
                     EndorseCount = endorseDetails.Where(agg => agg.EndorsedToPrincipalName.Equals(nomination.NominatedToPrincipalName, StringComparison.OrdinalIgnoreCase)
                     && nomination.AwardId.Equals(agg.EndorseForAwardId, StringComparison.OrdinalIgnoreCase)).Count(),
-                }).ToList();
+                }).OrderByDescending(row => row.NominatedOn).ToList();
 
                 return this.Ok(publishAwardDetails);
             }

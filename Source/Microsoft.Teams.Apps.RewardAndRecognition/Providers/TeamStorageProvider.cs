@@ -77,9 +77,9 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Providers
         /// <returns>A <see cref="Task"/> of type bool where true represents entity record is successfully deleted from table while false indicates failure in deleting data.</returns>
         public async Task<bool> DeleteTeamDetailAsync(TeamEntity teamEntity)
         {
-            await this.EnsureInitializedAsync().ConfigureAwait(false);
+            await this.EnsureInitializedAsync();
             TableOperation insertOrMergeOperation = TableOperation.Delete(teamEntity);
-            TableResult result = await this.CloudTable.ExecuteAsync(insertOrMergeOperation).ConfigureAwait(false);
+            TableResult result = await this.CloudTable.ExecuteAsync(insertOrMergeOperation);
             return result.HttpStatusCode == (int)HttpStatusCode.NoContent;
         }
     }

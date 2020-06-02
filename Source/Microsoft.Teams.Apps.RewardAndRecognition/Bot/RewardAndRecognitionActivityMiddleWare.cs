@@ -18,7 +18,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Bot
     /// <summary>
     /// Represents middle ware that can operate on incoming activities.
     /// </summary>
-    public class RewardAndRecognitionActivityMiddleWare : IMiddleware
+    public class RewardAndRecognitionActivityMiddleware : IMiddleware
     {
         /// <summary>
         /// Represents unique id of a Tenant.
@@ -41,12 +41,12 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Bot
         private readonly ILogger<RewardAndRecognitionActivityHandler> logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RewardAndRecognitionActivityMiddleWare"/> class.
+        /// Initializes a new instance of the <see cref="RewardAndRecognitionActivityMiddleware"/> class.
         /// </summary>
         /// <param name="options"> A set of key/value application configuration properties.</param>
         /// <param name="logger">Sends logs to the Application Insights service.</param>
         /// <param name="localizer">The current cultures' string localizer.</param>
-        public RewardAndRecognitionActivityMiddleWare(IOptions<RewardAndRecognitionActivityHandlerOptions> options, ILogger<RewardAndRecognitionActivityHandler> logger, IStringLocalizer<Strings> localizer)
+        public RewardAndRecognitionActivityMiddleware(IOptions<RewardAndRecognitionActivityHandlerOptions> options, ILogger<RewardAndRecognitionActivityHandler> logger, IStringLocalizer<Strings> localizer)
         {
             this.options = options ?? throw new ArgumentNullException(nameof(options));
             this.logger = logger;

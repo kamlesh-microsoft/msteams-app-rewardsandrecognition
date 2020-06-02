@@ -65,14 +65,14 @@ class DeleteAward extends React.Component<IAwardProps, IAwardState> {
    * Handles delete award event.
    */
     onDeleteButtonClick = async () => {
-        this.appInsights.trackEvent({ name: `Delete award` }, { User: this.userObjectId });
         this.appInsights.trackTrace({ message: `Delete award - Initiated request`, properties: { User: this.userObjectId }, severityLevel: SeverityLevel.Information });
         this.setState({ isSubmitLoading: true });
         let awardIds = this.props.selectedAwards.join(',');
-        let deletionResult = await deleteSelectedAwards(awardIds);
+        let deletionResult = await deleteSelectedAwards(awardIds, this.props.teamId!);
 
         if (deletionResult.status === 200 && deletionResult.data) {
             this.appInsights.trackTrace({ message: `'Delete award' - Request success`, properties: { User: this.userObjectId }, severityLevel: SeverityLevel.Information });
+            this.appInsights.trackEvent({ name: `Delete award` }, { User: this.userObjectId, Team: this.props.teamId! });
             this.props.onSuccess("delete");
         }
         else {
@@ -96,11 +96,11 @@ class DeleteAward extends React.Component<IAwardProps, IAwardState> {
                 items:
                     [
                         {
-                            content: <Image alt="NA" className="award-image-icon" fluid src={(value.awardLink === null || value.awardLink === "") ? getBaseUrl() + "/content/DefaultAwardImage.png" : value.awardLink} />, key: index + "1", truncateContent: true, className: "table-image-cell"
+                            content: <Image alt="NA" fluid src={(value.awardLink === null || value.awardLink === "") ? getBaseUrl() + "/content/DefaultAwardImage.png" : value.awardLink} />, key: index + "1", truncateContent: true, className: "award-image-icon table-image-cell"
                         },
                         {
                             content: <Flex column>
-                                <Text content={value.AwardName} title={value.AwardName} />
+                                <Text content={value.AwardName} weight="semibold" title={value.AwardName} />
                                 <Text content={value.awardDescription} title={value.awardDescription} />
                             </Flex>, key: index + "2", truncateContent: true
                         }
@@ -119,8 +119,8 @@ class DeleteAward extends React.Component<IAwardProps, IAwardState> {
                     <Flex hAlign="center">
                         <Text content={this.state.error} className="field-error-message" error size="medium" />
                     </Flex>
-                    <Text weight="semibold" content={t('awardDeleteConfirmationMessageText')} />
-                    <Table styles={{ marginTop: "1rem" }} rows={this.deleteContent()} />
+                    <Text weight="semibold" className="nominee-margin" content={t('awardDeleteConfirmationMessageText')} />
+                    <Table className="title" rows={this.deleteContent()} />
                 </div>
                 <div className="tab-footer">
                     <div>

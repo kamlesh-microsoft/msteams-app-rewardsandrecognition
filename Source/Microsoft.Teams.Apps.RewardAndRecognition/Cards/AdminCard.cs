@@ -19,11 +19,6 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Cards
     public static class AdminCard
     {
         /// <summary>
-        /// Link that redirects to tab.
-        /// </summary>
-        private const string TabDeepLink = "https://teams.microsoft.com/l/entity/{0}/rewardandrecognition_bot_app?context={1}";
-
-        /// <summary>
         /// This method will construct admin card with corresponding details.
         /// </summary>
         /// <param name="localizer">The current cultures' string localizer.</param>
@@ -46,14 +41,8 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Cards
                     },
                     new AdaptiveTextBlock
                     {
-                        Text = localizer.GetString("AdminSubheaderText"),
+                        Text = localizer.GetString("AdminSubheaderText", adminDetails?.AdminName, adminDetails.AdminPrincipalName),
                         Spacing = AdaptiveSpacing.None,
-                    },
-                    new AdaptiveTextBlock
-                    {
-                        Text = localizer.GetString("AdminName", adminDetails?.AdminName, adminDetails.AdminPrincipalName),
-                        Wrap = true,
-                        Spacing = AdaptiveSpacing.Default,
                     },
                     new AdaptiveTextBlock
                     {
@@ -68,7 +57,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Cards
                     new AdaptiveOpenUrlAction
                     {
                         Title = localizer.GetString("ManageRewardTitle"),
-                        Url = new System.Uri(string.Format(CultureInfo.InvariantCulture, TabDeepLink, manifestId, context)),
+                        Url = new System.Uri(string.Format(CultureInfo.InvariantCulture, Constants.TabDeepLink, manifestId, context)),
                     },
                 },
             };

@@ -20,12 +20,12 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Cards
         /// <summary>
         /// Represents the image pixel height.
         /// </summary>
-        private const int PixelHeight = 278;
+        private const int PixelHeight = 243;
 
         /// <summary>
         /// Represents the image pixel width.
         /// </summary>
-        private const int PixelWidth = 416;
+        private const int PixelWidth = 432;
 
         /// <summary>
         /// Render the set of attachments that comprise carousel.

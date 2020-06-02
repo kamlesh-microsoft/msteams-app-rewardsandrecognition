@@ -24,12 +24,12 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Helpers
         /// <summary>
         /// Represents the image pixel height.
         /// </summary>
-        private const int PixelHeight = 80;
+        private const int PixelHeight = 85;
 
         /// <summary>
         /// Represents the image pixel width.
         /// </summary>
-        private const int PixelWidth = 110;
+        private const int PixelWidth = 115;
 
         /// <summary>
         /// Search text parameter name defined in the application manifest file.
@@ -92,7 +92,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Helpers
                                 {
                                     new AdaptiveColumn
                                     {
-                                        Width = "50",
+                                        Width = AdaptiveColumnWidth.Stretch,
                                         Items = new List<AdaptiveElement>
                                         {
                                             new AdaptiveTextBlock
@@ -101,12 +101,13 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Helpers
                                                 HorizontalAlignment = AdaptiveHorizontalAlignment.Left,
                                                 Weight = AdaptiveTextWeight.Bolder,
                                                 Size = AdaptiveTextSize.Large,
+                                                Wrap = true,
                                             },
                                         },
                                     },
                                     new AdaptiveColumn
                                     {
-                                        Width = "100",
+                                        Width = AdaptiveColumnWidth.Auto,
                                         Items = new List<AdaptiveElement>
                                         {
                                             new AdaptiveImage

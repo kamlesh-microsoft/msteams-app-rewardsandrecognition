@@ -81,5 +81,10 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition
         /// Nominate award table.
         /// </summary>
         public const string NominateAwardTable = "NominationDetail";
+
+        /// <summary>
+        /// Link that redirects to tab.
+        /// </summary>
+        public const string TabDeepLink = "https://teams.microsoft.com/l/entity/{0}/rewardandrecognition_bot_app?context={1}";
     }
 }

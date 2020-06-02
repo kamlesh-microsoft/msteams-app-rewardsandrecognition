@@ -29,14 +29,13 @@ export const AppRoute: React.FunctionComponent<{}> = () => {
                     <Route exact path='/config-admin-page' component={ConfigurationAdminPage} />
                     <Route exact path='/nominate-awards' component={NominateAwards} />
                     <Route exact path="/awards-tab" component={AwardsTab} />
-                    <Route path="/publish-award" component={PublishAward} />
-                    <Route exact path="/" component={DiscoverWrapperPage} />
+                    <Route path="/publish-award" component={PublishAward} />                    
                     <Route exact path="/discover" component={DiscoverWrapperPage} />
                     <Route exact path="/signin" component={SignInPage} />
                     <Route exact path="/signin-simple-start" component={SignInSimpleStart} />
                     <Route exact path="/signin-simple-end" component={SignInSimpleEnd} />
-                    <Route exact path="/error" component={ErrorPage} />
-                    <Route exact path="/configTab" component={ConfigTab} />
+                    <Route exact path="/errorpage" component={ErrorPage} />
+                    <Route exact path="/config-tab" component={ConfigTab} />
                 </Switch>
             </BrowserRouter>
         </Suspense>

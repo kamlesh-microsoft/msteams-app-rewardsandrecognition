@@ -33,7 +33,6 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition
         {
             services.Configure<RewardAndRecognitionActivityHandlerOptions>(options =>
             {
-                options.UpperCaseResponse = configuration.GetValue<bool>("UppercaseResponse");
                 options.TenantId = configuration.GetValue<string>("Bot:TenantId");
                 options.AppBaseUri = configuration.GetValue<string>("Bot:AppBaseUri");
                 options.ManifestId = configuration.GetValue<string>("Bot:ManifestId");
@@ -118,7 +117,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition
             services.AddSingleton<IBotFrameworkHttpAdapter, RewardAndRecognitionAdapterWithErrorHandler>();
 
             // Create the Translation Middleware that will be added to the middleware pipeline in the AdapterWithErrorHandler
-            services.AddSingleton<RewardAndRecognitionActivityMiddleWare>();
+            services.AddSingleton<RewardAndRecognitionActivityMiddleware>();
             services.AddTransient<IBot, RewardAndRecognitionActivityHandler>();
             services.AddTransient(serviceProvider => (BotFrameworkAdapter)serviceProvider.GetRequiredService<IBotFrameworkHttpAdapter>());
         }

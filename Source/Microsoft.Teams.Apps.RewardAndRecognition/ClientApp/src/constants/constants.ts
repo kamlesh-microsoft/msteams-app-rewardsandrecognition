@@ -23,6 +23,8 @@ export default class Constants {
 
 	//KeyCodes
 	public static readonly keyCodeEnter: number = 13;
-	public static readonly keyCodeSpace: number = 32;
+    public static readonly keyCodeSpace: number = 32;
+
+    public static readonly minimumCycleDays: number = 7;
 
 }

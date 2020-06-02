@@ -27,6 +27,7 @@ interface IState {
     isSubmitLoading: boolean;
     isSelectedMemberPresent: boolean;
     errorMessage: string | null;
+    searchQuery: any;
 }
 
 const browserHistory = createBrowserHistory({ basename: "" });
@@ -55,6 +56,7 @@ class ConfigurationAdminPage extends React.Component<WithTranslation, IState>
             isSubmitLoading: false,
             isSelectedMemberPresent: true,
             errorMessage: "",
+            searchQuery: undefined,
         };
 
         let search = window.location.search;
@@ -132,6 +134,7 @@ class ConfigurationAdminPage extends React.Component<WithTranslation, IState>
         const saveAdminDetailsResponse = await saveAdminDetails(adminDetails);
         if (saveAdminDetailsResponse.status === 200) {
             this.appInsights.trackTrace({ message: `'saveAdminDetails' - Request success`, severityLevel: SeverityLevel.Information, properties: { UserEmail: this.userEmail } });
+            this.appInsights.trackEvent({ name: `Set Champion` }, { User: this.userObjectId, Team: this.teamId! });
             let toBot =
             {
                 Command: this.isActivityIdPresent === "True" ? Constants.UpdateAdminDetailCommand : Constants.SaveAdminDetailCommand,
@@ -174,9 +177,9 @@ class ConfigurationAdminPage extends React.Component<WithTranslation, IState>
             let searchQuery = props.searchQuery;
             let selectedItem = props.items.find((item) => item.header.toUpperCase() === searchQuery.toUpperCase());
             if (selectedItem) {
-                this.setState({ selectedMember: selectedItem, isSelectedMemberPresent: true });
+                this.setState({ selectedMember: selectedItem, isSelectedMemberPresent: true, searchQuery: searchQuery });
             } else {
-                this.setState({ selectedMember: null, isSelectedMemberPresent: false });
+                this.setState({ selectedMember: null, isSelectedMemberPresent: false, searchQuery: undefined });
             }
         }
     }
@@ -204,13 +207,13 @@ class ConfigurationAdminPage extends React.Component<WithTranslation, IState>
             const { t } = this.props;
             return (
                 <div className="add-user-responses-page">
-                    <Flex gap="gap.large" vAlign="center" className="title">
-                        <Text content={t('selectTeamMemberTitle')} />
+                    <Flex gap="gap.smaller" vAlign="center" >
+                        <Text content={t('selectTeamMemberTitle')} /><Text content="*" className="requiredfield" error size="medium" />
                         <Flex.Item push>
                             {this.getRequiredFieldError(this.state.isSelectedMemberPresent, t)}
                         </Flex.Item>
                     </Flex>
-                    <Flex gap="gap.large" vAlign="center">
+                    <Flex gap="gap.smaller" vAlign="center">
                         <Flex.Item align="start" size="size.small" grow>
                             <Dropdown
                                 fluid
@@ -220,11 +223,13 @@ class ConfigurationAdminPage extends React.Component<WithTranslation, IState>
                                 getA11ySelectionMessage={this.getA11SelectionMessage}
                                 noResultsMessage={t('noMatchesFoundText')}
                                 onSearchQueryChange={this.onSearchQueryChange}
+                                searchQuery={this.state.searchQuery}
+                                value={this.state.selectedMember}
                             />
                         </Flex.Item>
                     </Flex>
                     <div>
-                        <Flex gap="gap.large" vAlign="center" className="title">
+                        <Flex gap="gap.smaller" vAlign="center" className="margin-small-top">
                             <Text content={t('noteForTeamTitle')} />
                         </Flex>
                         <div className="add-form-input">

@@ -16,3 +16,8 @@ export class ResultDetails {
     AwardLink: string | undefined;
     AwardCycle: string | undefined;
 }
+
+export class NominatedAward {
+    AwardId: string | undefined;
+    AwardName: string | undefined;
+}

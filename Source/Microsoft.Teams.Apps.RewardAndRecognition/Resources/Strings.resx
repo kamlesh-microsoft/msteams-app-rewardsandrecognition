@@ -118,124 +118,164 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AlreadyendorsedMessage" xml:space="preserve">
-    <value>You have already endorsed this nomination. We know that waiting is always the hardest part, but results should be out by {0}.</value>
+    <value>You have already endorsed **{0}** for this award.</value>
+    <comment>Message to be shown when user is already endorsed.</comment>
   </data>
   <data name="AdminHeaderText" xml:space="preserve">
-    <value>Here is your new admin!</value>
-  </data>
-  <data name="AdminName" xml:space="preserve">
-    <value>**{0}**({1}) has been set as R&amp;R Admin.</value>
+    <value>Your new awards captain is...</value>
+    <comment>Header text to be shown in R&amp;R admin selection card.</comment>
   </data>
   <data name="AdminSubheaderText" xml:space="preserve">
-    <value>Admin selection</value>
+    <value>{0} - {1}</value>
+    <comment>Sub header text to be shown in R&amp;R admin selection  card.</comment>
   </data>
   <data name="ConfigureAdminTitle" xml:space="preserve">
-    <value>Configure R&amp;R admin</value>
+    <value>Set awards captain</value>
+    <comment>Title text to show in Configure R&amp;R task module.</comment>
   </data>
   <data name="ContentText" xml:space="preserve">
-    <value>Ready to get started? Configure R&amp;R Admin.</value>
+    <value>Ready to get started? Select awards captain</value>
     <comment>Text to show in channel welcome card.</comment>
   </data>
   <data name="EndorseButtonText" xml:space="preserve">
     <value>Endorse</value>
+    <comment>Title text to show in Endorse card.</comment>
   </data>
   <data name="EndorseTitle" xml:space="preserve">
     <value>Endorse</value>
+    <comment>Title text to show in Endorse button.</comment>
   </data>
   <data name="EndorsedByTableHeaderText" xml:space="preserve">
     <value>Endorsed by</value>
+    <comment>Header text to be used for coulmn in Publish result under Winner selection tab.</comment>
   </data>
   <data name="ErrorMessage" xml:space="preserve">
-    <value>Something went wrong. please try again later</value>
+    <value>Something went wrong. Try again in a few minutes.</value>
+    <comment>Generic error message.</comment>
   </data>
   <data name="InvalidTeamText" xml:space="preserve">
-    <value>This Bot is not installed in the team.</value>
+    <value>Bot cannot be used here because it has not been added for this team.</value>
+    <comment>Text to show when user tries to open bot where it is not configured.</comment>
   </data>
   <data name="ManageAwardsBulletPoint" xml:space="preserve">
-    <value>* Manage awards</value>
+    <value>* Allow nomination of your team mates for designated awards.</value>
+    <comment>Message to be shown in channel when user types any command.</comment>
   </data>
   <data name="NominateBulletPoint" xml:space="preserve">
-    <value>* Nominate</value>
+    <value>* Approve and publish the award winners from the list of nominees.</value>
+    <comment>Message to be shown in channel when user types any command.</comment>
   </data>
   <data name="NominateButton" xml:space="preserve">
     <value>Nominate</value>
+    <comment>Text to be shown in nominate button.</comment>
   </data>
   <data name="NominateButtonText" xml:space="preserve">
     <value>Nominate now</value>
+    <comment>Text to be shown in nominate now button.</comment>
   </data>
   <data name="NominatedByText" xml:space="preserve">
     <value>Nominated by {0}.</value>
+    <comment>Text to be shown in Endorse card on nomination.</comment>
   </data>
   <data name="NominatePeopleTitle" xml:space="preserve">
     <value>Nominate people</value>
+    <comment>Text to be shown in nominate card header.</comment>
   </data>
   <data name="NoteForTeamText" xml:space="preserve">
-    <value>**Note from team manager:** {0}</value>
+    <value>**Note from team owner:** {0}</value>
+    <comment>Text to be shown in Admin card.</comment>
   </data>
   <data name="OkButtonText" xml:space="preserve">
     <value>Ok</value>
-  </data>
-  <data name="PublishAwardResultButtonText" xml:space="preserve">
-    <value>Publish result</value>
+    <comment>Ok button text.</comment>
   </data>
   <data name="RewardCycleText" xml:space="preserve">
     <value>Reward cycle:</value>
+    <comment>Text to show reqard cycle date range in tab.</comment>
   </data>
   <data name="RewardTitle" xml:space="preserve">
     <value>It's reward time!</value>
+    <comment>Header text to be shown in Reward adaptive card.</comment>
   </data>
   <data name="SetAdminBulletPoint" xml:space="preserve">
-    <value>* Configure R&amp;R Admin</value>
+    <value>* Set awards captain who can define awards and manage reward nomination cycles.</value>
+    <comment>Message to be shown in channel when user types any command.</comment>
   </data>
   <data name="SetAdminButtonText" xml:space="preserve">
-    <value>Configure R&amp;R Admin</value>
+    <value>Set awards captain</value>
+    <comment>Title text to show in set R&amp;R admin card.</comment>
   </data>
   <data name="SetRewardCycleBulletPoint" xml:space="preserve">
-    <value>* Set reward cycle</value>
+    <value>* Show support for nominees by endorsing their nominations.</value>
+    <comment>Message to be shown in channel when user types any command.</comment>
   </data>
   <data name="SuccessfulEndorseMessage" xml:space="preserve">
-    <value>Thanks! You’ve successfully endorsed **{0}** for **{1}**. Results will be published on **{2}** .</value>
+    <value>You've successfully endorsed the nomination of **{0}** for the **{1}**. Results will be shared on **{2}.**</value>
+    <comment>Text to be shown in Endorse successful message.</comment>
   </data>
   <data name="WelcomeCardTitle" xml:space="preserve">
     <value>Welcome!</value>
     <comment>Text to show in welcome card.</comment>
   </data>
   <data name="WelcomeSubHeaderText" xml:space="preserve">
-    <value>Here are some of the things that I can do:</value>
+    <value>Here are some of the things that I can help you do:</value>
     <comment>Text to show as a sub header in welcome card.</comment>
   </data>
   <data name="WelcomeTeamCardContent" xml:space="preserve">
-    <value>Hello, I am Rewards &amp; Recognition bot and I can help you nominate your team members for performance awards.</value>
+    <value>Hello, I am Awardster bot and I can help you nominate your team members for performance awards.</value>
     <comment>Text to show bot description in welcome card for Sme.</comment>
-  </data>
-  <data name="PublishAwardButtonText" xml:space="preserve">
-    <value>Publish result</value>
   </data>
   <data name="WinnersCountText" xml:space="preserve">
     <value>Winners</value>
+    <comment>Text to be shown in Winner counts in publish result tab.</comment>
   </data>
   <data name="AwardWinnerCardTitle" xml:space="preserve">
-    <value>Here are the winners!</value>
+    <value>And the winners are…</value>
+    <comment>Text to show in Winner Carousel card after publish results.</comment>
   </data>
   <data name="WinnerCardRewardCycleTitle" xml:space="preserve">
     <value>For the reward cycle</value>
+    <comment>Text to be shown in Winner carousel card.</comment>
   </data>
   <data name="RewardCycleHeader" xml:space="preserve">
     <value>Reward cycle has been configured from **{0}**  to **{1}**.</value>
+    <comment>Text to be shown in Nomination Carousel card after setting reward cycle.</comment>
   </data>
   <data name="CycleValidationMessage" xml:space="preserve">
-    <value>There is no active reward cycle going on currently for the team. Please wait for sometime until the reward cycle has been set from admin.</value>
+    <value>We're not currently in an active award cycle. Wait until the next cycle to nominate or endorse a teammate.</value>
+    <comment>Validation message to be shown if user tries to nominate or endorse without active reward cycle.</comment>
   </data>
-  <data name="MentionText" xml:space="preserve">
-    <value>Hey {0} way to go! - {1}.</value>
+  <data name="SetAdminMentionText" xml:space="preserve">
+    <value>As awards captain, {0} will define the awards, set the awards cycle, and share the results. Thanks so much! - {1}.</value>
+    <comment>Mention text when new admin is configured for RnR .</comment>
   </data>
   <data name="UnsupportedBotCommand" xml:space="preserve">
-    <value>Currently not supporting any bot command.</value>
+    <value>I don't know that command. Try typing command:
+-Nominate</value>
+    <comment>Message to be shown in channel when user types any command.</comment>
   </data>
   <data name="ManageRewardTitle" xml:space="preserve">
-    <value> Go to RnR tab</value>
+    <value>Go to Awardster tab</value>
+    <comment>Action button title text which on click redirects to RnR tab.</comment>
   </data>
   <data name="CycleClosedMessage" xml:space="preserve">
     <value>This reward cycle is closed.</value>
+    <comment>Validation message to be shown if user tries to nominate or endorse without active reward cycle.</comment>
+  </data>
+  <data name="NominationMentionText" xml:space="preserve">
+    <value>{0} has been nominated for this award. Feel free to endorse them! Thanks so much! - {1} for your nomination.</value>
+    <comment>Mention text when new nomination submited.</comment>
+  </data>
+  <data name="WinnerMentionText" xml:space="preserve">
+    <value>Congratulations </value>
+    <comment>Mention text when new winner published.</comment>
+  </data>
+  <data name="NominationReminderNotificationText" xml:space="preserve">
+    <value>Nominations are about to close, please nominate now.</value>
+    <comment>Text to show in nomination reminder nomification card.</comment>
+  </data>
+  <data name="ViewWinnerTabText" xml:space="preserve">
+    <value>View results</value>
+    <comment>Text to show in winner card to navigate user to tab.</comment>
   </data>
 </root>

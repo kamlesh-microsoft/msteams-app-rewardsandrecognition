@@ -13,6 +13,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.Bot.Builder;
     using Microsoft.Bot.Builder.Teams;
+    using Microsoft.Bot.Connector.Authentication;
     using Microsoft.Bot.Schema;
     using Microsoft.Bot.Schema.Teams;
     using Microsoft.Extensions.Localization;
@@ -30,15 +31,40 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition
     /// </summary>
     public sealed class RewardAndRecognitionActivityHandler : TeamsActivityHandler
     {
+        /// <summary>
+        /// A set of key/value application configuration properties for Activity settings.
+        /// </summary>
         private readonly IOptions<RewardAndRecognitionActivityHandlerOptions> options;
 
+        /// <summary>
+        /// Instrumentation key of the telemetry client.
+        /// </summary>
         private readonly string instrumentationKey;
 
+        /// <summary>
+        /// Instance to send logs to the Application Insights service.
+        /// </summary>
         private readonly ILogger<RewardAndRecognitionActivityHandler> logger;
 
+        /// <summary>
+        /// The current cultures' string localizer.
+        /// </summary>
         private readonly IStringLocalizer<Strings> localizer;
 
+        /// <summary>
+        /// Instance of Application Insights Telemetry client.
+        /// </summary>
         private readonly TelemetryClient telemetryClient;
+
+        /// <summary>
+        /// Microsoft application credentials.
+        /// </summary>
+        private readonly MicrosoftAppCredentials microsoftAppCredentials;
+
+        /// <summary>
+        /// Bot adapter.
+        /// </summary>
+        private readonly BotFrameworkAdapter botAdapter;
 
         /// <summary>
         /// Represents the Application base Uri.
@@ -89,6 +115,8 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition
         /// <param name="endorseDetailStorageProvider">Provider for fetching information about endorsement details from storage table.</param>
         /// <param name="rewardCycleStorageProvider">Provider for fetching information about active award cycle details from storage table.</param>
         /// <param name="nominateDetailSearchService">Provider to search nomination details in Azure search service.</param>
+        /// <param name="botAdapter">Bot adapter.</param>
+        /// <param name="microsoftAppCredentials">MicrosoftAppCredentials of bot.</param>
         public RewardAndRecognitionActivityHandler(
             ILogger<RewardAndRecognitionActivityHandler> logger,
             IStringLocalizer<Strings> localizer,
@@ -100,13 +128,18 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition
             IAwardsStorageProvider awardsStorageProvider,
             IEndorseDetailStorageProvider endorseDetailStorageProvider,
             IRewardCycleStorageProvider rewardCycleStorageProvider,
-            INominateDetailSearchService nominateDetailSearchService)
+            INominateDetailSearchService nominateDetailSearchService,
+            BotFrameworkAdapter botAdapter,
+            MicrosoftAppCredentials microsoftAppCredentials)
         {
+            options = options ?? throw new ArgumentNullException(nameof(options));
+            telemetryOptions = telemetryOptions ?? throw new ArgumentNullException(nameof(telemetryOptions));
+
             this.logger = logger;
             this.localizer = localizer;
             this.telemetryClient = telemetryClient;
-            this.options = options ?? throw new ArgumentNullException(nameof(options));
-            this.instrumentationKey = telemetryOptions?.Value.InstrumentationKey;
+            this.options = options;
+            this.instrumentationKey = telemetryOptions.Value.InstrumentationKey;
             this.appBaseUrl = this.options.Value.AppBaseUri;
             this.configureAdminStorageProvider = configureAdminStorageProvider;
             this.teamStorageProvider = teamStorageProvider;
@@ -114,6 +147,8 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition
             this.endorseDetailStorageProvider = endorseDetailStorageProvider;
             this.rewardCycleStorageProvider = rewardCycleStorageProvider;
             this.nominateDetailSearchService = nominateDetailSearchService;
+            this.botAdapter = botAdapter;
+            this.microsoftAppCredentials = microsoftAppCredentials;
         }
 
         /// <summary>
@@ -197,7 +232,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition
                 this.logger.LogInformation($"Member removed {activity.Conversation.Id}");
                 await turnContext.SendActivityAsync(MessageFactory.Attachment(WelcomeCard.GetCard(this.appBaseUrl, this.localizer)), cancellationToken);
             }
-            else if (membersRemoved.Where(member => member.Id == activity.Recipient.Id).FirstOrDefault() != null)
+            else if (membersRemoved.Where(member => member.Id == activity.Recipient.Id).Any())
             {
                 this.logger.LogInformation($"Bot removed {activity.Conversation.Id}");
                 var teamEntity = await this.teamStorageProvider.GetTeamDetailAsync(teamsDetails.Id);
@@ -269,10 +304,9 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition
                 var valuesfromTaskModule = JsonConvert.DeserializeObject<TaskModuleResponseDetails>(action.Data.ToString());
                 if (valuesfromTaskModule.Command.ToUpperInvariant() == Constants.SaveNominatedDetailsAction)
                 {
-                    var mentionActivity = await CardHelper.GetMentionActivityAsync(valuesfromTaskModule.NominatedToPrincipalName.Split(",").Select(row => row.Trim()).ToList(), turnContext.Activity.From.AadObjectId, valuesfromTaskModule.TeamId, turnContext, this.localizer, this.logger, cancellationToken);
-                    var notificationCard = await turnContext.SendActivityAsync(MessageFactory.Attachment(EndorseCard.GetEndorseCard(this.appBaseUrl, this.localizer, valuesfromTaskModule)));
-                    turnContext.Activity.Conversation.Id = $"{valuesfromTaskModule.TeamId};messageid={notificationCard.Id}";
-                    await turnContext.SendActivityAsync(mentionActivity);
+                    var mentionActivity = await CardHelper.GetMentionActivityAsync(valuesfromTaskModule.NominatedToPrincipalName.Split(",").Select(row => row.Trim()).ToList(), turnContext.Activity.From.AadObjectId, valuesfromTaskModule.TeamId, turnContext, this.localizer, this.logger, MentionActivityType.Nomination, cancellationToken);
+                    var notificationCard = (Activity)MessageFactory.Attachment(EndorseCard.GetEndorseCard(this.appBaseUrl, this.localizer, valuesfromTaskModule));
+                    await this.SendMentionedCardAsync(turnContext, notificationCard, mentionActivity);
                     this.logger.LogInformation("Nominated an award");
                     return null;
                 }
@@ -301,7 +335,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition
             this.RecordEvent(nameof(this.OnTeamsTaskModuleFetchAsync), turnContext);
             try
             {
-                var teamsDetails = turnContext.Activity.TeamsGetTeamInfo();
+                var teamsDetails = activity.TeamsGetTeamInfo();
                 var valuesforTaskModule = JsonConvert.DeserializeObject<AdaptiveCardAction>(((JObject)activity.Value).GetValue("data", StringComparison.OrdinalIgnoreCase)?.ToString());
                 var cycleStatus = await this.rewardCycleStorageProvider.GetActiveRewardCycleAsync(teamsDetails.Id);
                 if (cycleStatus != null && cycleStatus.CycleId != valuesforTaskModule.RewardCycleId && valuesforTaskModule.Command != Constants.ConfigureAdminAction)
@@ -316,7 +350,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition
                 switch (valuesforTaskModule.Command)
                 {
                     case Constants.ConfigureAdminAction:
-                        bool isActivityIdPresent = !string.IsNullOrEmpty(turnContext.Activity.Conversation.Id.Split(';')[1].Split("=")[1]);
+                        bool isActivityIdPresent = !string.IsNullOrEmpty(activity.Conversation.Id.Split(';')[1].Split("=")[1]);
                         this.logger.LogInformation("Fetch task module to show configure R&R admin card.");
                         return CardHelper.GetTaskModuleResponse(applicationBasePath: this.appBaseUrl, instrumentationKey: this.instrumentationKey, localizer: this.localizer, command: valuesforTaskModule.Command, teamId: teamsDetails.Id, isActivityIdPresent: isActivityIdPresent);
 
@@ -363,10 +397,9 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition
                 switch (valuesfromTaskModule.Command.ToUpperInvariant())
                 {
                     case Constants.SaveAdminDetailsAction:
-                        mentionActivity = await CardHelper.GetMentionActivityAsync(valuesfromTaskModule.AdminPrincipalName.Split(",").ToList(), turnContext.Activity.From.AadObjectId, valuesfromTaskModule.TeamId, turnContext, this.localizer, this.logger, cancellationToken);
-                        var cardDetail = await turnContext.SendActivityAsync(MessageFactory.Attachment(AdminCard.GetAdminCard(this.localizer, valuesfromTaskModule, this.options.Value.ManifestId)));
-                        turnContext.Activity.Conversation.Id = $"{turnContext.Activity.Conversation.Id};messageid={cardDetail.Id}";
-                        await turnContext.SendActivityAsync(mentionActivity);
+                        mentionActivity = await CardHelper.GetMentionActivityAsync(valuesfromTaskModule.AdminPrincipalName.Split(",").ToList(), turnContext.Activity.From.AadObjectId, valuesfromTaskModule.TeamId, turnContext, this.localizer, this.logger, MentionActivityType.SetAdmin, cancellationToken);
+                        var cardDetail = (Activity)MessageFactory.Attachment(AdminCard.GetAdminCard(this.localizer, valuesfromTaskModule, this.options.Value.ManifestId));
+                        await this.SendMentionedCardAsync(turnContext, cardDetail, mentionActivity);
                         this.logger.LogInformation("R&R admin has been configured");
                         break;
 
@@ -374,7 +407,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition
                         break;
 
                     case Constants.UpdateAdminDetailCommand:
-                        mentionActivity = await CardHelper.GetMentionActivityAsync(valuesfromTaskModule.AdminPrincipalName.Split(",").ToList(), turnContext.Activity.From.AadObjectId, valuesfromTaskModule.TeamId, turnContext, this.localizer, this.logger, cancellationToken);
+                        mentionActivity = await CardHelper.GetMentionActivityAsync(valuesfromTaskModule.AdminPrincipalName.Split(",").ToList(), turnContext.Activity.From.AadObjectId, valuesfromTaskModule.TeamId, turnContext, this.localizer, this.logger, MentionActivityType.SetAdmin, cancellationToken);
                         notificationCard = MessageFactory.Attachment(AdminCard.GetAdminCard(this.localizer, valuesfromTaskModule, this.options.Value.ManifestId));
                         notificationCard.Id = turnContext.Activity.Conversation.Id.Split(';')[1].Split("=")[1];
                         notificationCard.Conversation = turnContext.Activity.Conversation;
@@ -390,10 +423,9 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition
 
                     case Constants.SaveNominatedDetailsAction:
                         turnContext.Activity.Conversation.Id = valuesfromTaskModule.TeamId;
-                        var result = await turnContext.SendActivityAsync(MessageFactory.Attachment(EndorseCard.GetEndorseCard(this.appBaseUrl, this.localizer, valuesfromTaskModule)));
-                        turnContext.Activity.Conversation.Id = $"{valuesfromTaskModule.TeamId};messageid={result.Id}";
-                        mentionActivity = await CardHelper.GetMentionActivityAsync(valuesfromTaskModule.NominatedToPrincipalName.Split(",").Select(row => row.Trim()).ToList(), turnContext.Activity.From.AadObjectId, valuesfromTaskModule.TeamId, turnContext, this.localizer, this.logger, cancellationToken);
-                        await turnContext.SendActivityAsync(mentionActivity);
+                        var result = (Activity)MessageFactory.Attachment(EndorseCard.GetEndorseCard(this.appBaseUrl, this.localizer, valuesfromTaskModule));
+                        mentionActivity = await CardHelper.GetMentionActivityAsync(valuesfromTaskModule.NominatedToPrincipalName.Split(",").Select(row => row.Trim()).ToList(), turnContext.Activity.From.AadObjectId, valuesfromTaskModule.TeamId, turnContext, this.localizer, this.logger, MentionActivityType.Nomination, cancellationToken);
+                        await this.SendMentionedCardAsync(turnContext, result, mentionActivity);
                         this.logger.LogInformation("Nominated an award");
                         break;
 
@@ -519,6 +551,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition
             var teamsDetails = turnContext.Activity.TeamsGetTeamInfo();
             if (teamsDetails == null)
             {
+                this.logger.LogInformation($"Validation failed: bot is not part of teams channel.", SeverityLevel.Information);
                 return false;
             }
 
@@ -560,6 +593,46 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition
                 // Do not fail on errors sending the typing indicator
                 this.logger.LogWarning(ex, "Failed to send a typing indicator.");
             }
+        }
+
+        /// <summary>
+        /// Send adaptive card with mentioned activity.
+        /// </summary>
+        /// <param name="turnContext">Context object containing information cached for a single turn of conversation with a user.</param>
+        /// <param name="mainActivity">Adaptive card activity.</param>
+        /// <param name="mentionActivity">Mentioned card activity.</param>
+        /// <returns>Returns true if activity sent successfully, else false.</returns>
+        private async Task<bool> SendMentionedCardAsync(ITurnContext<IInvokeActivity> turnContext, Activity mainActivity, Activity mentionActivity)
+        {
+            var channelData = turnContext.Activity.GetChannelData<TeamsChannelData>();
+            var conversationParameters = new ConversationParameters()
+            {
+                ChannelData = channelData,
+                Activity = mainActivity,
+                Bot = turnContext.Activity.Recipient,
+                IsGroup = true,
+                TenantId = this.options.Value.TenantId,
+            };
+
+            await this.botAdapter.CreateConversationAsync(
+                            "msteams",
+                            turnContext.Activity.ServiceUrl,
+                            this.microsoftAppCredentials,
+                            conversationParameters,
+                            async (conversationTurnContext, conversationCancellationToken) =>
+                            {
+                                await this.botAdapter.ContinueConversationAsync(
+                                    this.microsoftAppCredentials.MicrosoftAppId,
+                                    conversationTurnContext.Activity.GetConversationReference(),
+                                    async (continueConversationTurnContext, continueConversationCancellationToken) =>
+                                    {
+                                        mentionActivity.ApplyConversationReference(conversationTurnContext.Activity.GetConversationReference());
+                                        await continueConversationTurnContext.SendActivityAsync(mentionActivity, continueConversationCancellationToken);
+                                    }, conversationCancellationToken);
+                            },
+                            default);
+
+            return true;
         }
     }
 }

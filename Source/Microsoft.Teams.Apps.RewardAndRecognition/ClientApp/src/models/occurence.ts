@@ -7,5 +7,5 @@
 export enum Occurrence {
     None = 0,
     EndBy = 1,
-    EndAfter = 2    
+    EndAfter = 2
 }

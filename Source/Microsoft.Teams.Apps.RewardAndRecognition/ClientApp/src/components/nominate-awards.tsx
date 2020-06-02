@@ -163,7 +163,7 @@ class NominateAwards extends React.Component<WithTranslation, IState>
     *Navigate to nomination preview page
     */
     onPreviewButtonClick = () => {
-        this.appInsights.trackEvent({ name: `preview award` }, { User: this.userObjectId });
+        this.appInsights.trackEvent({ name: `Preview award` }, { User: this.userObjectId, Team: this.teamId! });
         if (this.state.selectedMembers.length === 0) {
             this.setState({ isSelectedMembersPresent: false });
         }
@@ -296,13 +296,12 @@ class NominateAwards extends React.Component<WithTranslation, IState>
                     <Flex gap="gap.large" vAlign="center" className="title">
                         <Text content={t('awardDescription')} />
                     </Flex>
-                    <TextArea fluid disabled
-                        className="response-text-area"
-                        value={this.state.awardDescription}
+                    <Text className="response-text-area word-break"
+                        content={this.state.awardDescription}
                     />
                 </div>
-                <Flex gap="gap.large" vAlign="center" className="title">
-                    <Text content={t('toBeAwardedToTitle')} />
+                <Flex gap="gap.small" vAlign="center" className="title">
+                    <Text content={t('toBeAwardedToTitle')} /><Text content="*" className="requiredfield" error size="medium" />
                     <Flex.Item push>
                         {this.getRequiredFieldError(this.state.isSelectedMembersPresent, t)}
                     </Flex.Item>
@@ -322,8 +321,8 @@ class NominateAwards extends React.Component<WithTranslation, IState>
                     </Flex.Item>
                 </Flex>
                 <div>
-                    <Flex gap="gap.large" vAlign="center" className="title">
-                        <Text content={t('reasonForNominationTitle')} />
+                    <Flex gap="gap.small" vAlign="center" className="title">
+                        <Text content={t('reasonForNominationTitle')} /><Text content="*" className="requiredfield" error size="medium" />
                         <Flex.Item push>
                             {this.getRequiredFieldError(this.state.isNoteForNomination, t)}
                         </Flex.Item>
@@ -364,7 +363,7 @@ class NominateAwards extends React.Component<WithTranslation, IState>
         }
         else {
             return (
-                <div className="container-div">
+                <div className="module-container">
                     {contents}
                 </div>
             );

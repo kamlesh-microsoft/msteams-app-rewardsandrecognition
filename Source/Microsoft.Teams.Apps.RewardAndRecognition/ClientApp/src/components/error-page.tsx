@@ -24,7 +24,7 @@ class ErrorPage extends React.Component<WithTranslation> {
     render() {
         const { t } = this.props;
         if (this.code === "401") {
-            this.message = t('unauthorizedErrorMessage');
+            this.message = t('unauthorizedAccess');
         } else if (this.code === "403") {
             this.message = t('forbiddenErrorMessage');
         }

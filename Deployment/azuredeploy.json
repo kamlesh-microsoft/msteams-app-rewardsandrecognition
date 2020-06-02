@@ -35,7 +35,7 @@
     "appDisplayName": {
       "type": "string",
       "minLength": 1,
-      "defaultValue": "Rewards & Recognition",
+      "defaultValue": "Awardster",
       "metadata": {
         "description": "App display name."
       }
@@ -43,9 +43,20 @@
     "appDescription": {
       "type": "string",
       "minLength": 1,
-      "defaultValue": "Rewards & recognition bot allows leads/teachers to create reward cycle with multiple rewards and then anyone in team can nominate their peers for various reward categories. Members can endorse other nominations. ",
+      "defaultValue": "Awardster provides an easy way for you to conduct your monthly, quarterly rewards and recognition process. Now you can easily nominate your colleague for designated awards, appreciate them for a job well done and celebrate success of your team anytime and from anywhere. ",
       "metadata": {
         "description": "App description."
+      }
+    },
+    "customDomainOption": {
+      "type": "string",
+      "allowedValues": [
+        "Custom domain name (recommended)",
+        "Azure Front Door"
+      ],
+      "defaultValue": "Azure Front Door",
+      "metadata": {
+        "description": "How the app will be hosted on a domain that is not *.azurewebsites.net. Azure Front Door is an easy option that the template can set up automatically, but it comes with ongoing monthly costs. "
       }
     },
     "appIconUrl": {
@@ -63,6 +74,12 @@
       "maxLength": 36,
       "metadata": {
         "description": "The ID of the tenant to which the app will be deployed."
+      }
+    },
+      "manifestId": {
+      "type": "string",
+      "metadata": {
+        "description": "Application manifest Id."
       }
     },
     "sku": {
@@ -104,7 +121,7 @@
     "supportedCultures": {
       "type": "string",
       "minLength": 1,
-      "defaultValue": "en-US,fr-Fr"
+      "defaultValue": "en-US"
     },
     "searchServiceSku": {
       "defaultValue": "B (15 indexes)",
@@ -122,7 +139,7 @@
       "metadata": {
         "description": "The URL to the GitHub repository to deploy."
       },
-      "defaultValue": ""
+      "defaultValue": "https://github.com/OfficeDev/microsoft-teams-app-awardster.git"
     },
     "gitBranch": {
       "type": "string",
@@ -152,7 +169,10 @@
       "Shared"
     ],
     "isSharedPlan": "[contains(variables('sharedSkus'), parameters('sku'))]",
-    "skuFamily": "[if(equals(parameters('sku'), 'Shared'), 'D', take(parameters('sku'), 1))]"
+    "skuFamily": "[if(equals(parameters('sku'), 'Shared'), 'D', take(parameters('sku'), 1))]",
+    "useFrontDoor": "[equals(parameters('customDomainOption'), 'Azure Front Door')]",
+    "frontDoorName": "[parameters('baseResourceName')]",
+    "frontDoorDomain": "[toLower(concat(variables('frontDoorName'), '.azurefd.net'))]"
   },
   "resources": [
     {
@@ -242,7 +262,7 @@
             },
             {
               "name": "Bot:AppBaseUri",
-              "value": "[concat('https://', variables('botAppDomain'))]"
+              "value": "[concat('https://', variables('frontDoorDomain'))]"
             },
             {
               "name": "Bot:TenantId",
@@ -259,10 +279,6 @@
             {
               "name": "i18n:DefaultCulture",
               "value": "[parameters('defaultCulture')]"
-            },
-            {
-              "name": "i18n:SupportedCultures",
-              "value": "[parameters('supportedCultures')]"
             },
             {
               "name": "i18n:SupportedCultures",
@@ -302,13 +318,23 @@
             },
             {
               "name": "AzureAd:ApplicationIdURI",
-              "value": "[concat('api://', variables('botAppDomain'),'/', [parameters('appclientId')])]"
+              "value": "[if(variables('useFrontDoor'), concat('api://', concat(variables('frontDoorDomain'), concat('/',parameters('botClientId')))), '')]"
+            },
+            {
+              "name": "Bot:ManifestId",
+              "value": "[parameters('manifestId')]"
             },
             {
               "name": "AzureAd:ValidIssuers",
               "value": "https://login.microsoftonline.com/TENANT_ID/v2.0,https://sts.windows.net/TENANT_ID/"
             }
-          ]
+          ],
+          "cors": {
+            "supportCredentials": true,
+            "allowedOrigins": [
+              "[concat('https://', variables('frontDoorDomain'))]"
+            ]
+          }
         }
       },
       "resources": [
@@ -400,6 +426,128 @@
         "partitionCount": 1,
         "hostingMode": "default"
       }
+    },
+    {
+      "apiVersion": "2019-04-01",
+      "type": "Microsoft.Network/frontDoors",
+      "name": "[variables('frontDoorName')]",
+      "condition": "[variables('useFrontDoor')]",
+      "location": "Global",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', variables('botAppName'))]"
+      ],
+      "properties": {
+        "backendPools": [
+          {
+            "name": "backendPool1",
+            "properties": {
+              "backends": [
+                {
+                  "address": "[variables('botAppDomain')]",
+                  "backendHostHeader": "[variables('botAppDomain')]",
+                  "httpPort": 80,
+                  "httpsPort": 443,
+                  "priority": 1,
+                  "weight": 50,
+                  "enabledState": "Enabled"
+                }
+              ],
+              "healthProbeSettings": {
+                "id": "[resourceId('Microsoft.Network/frontDoors/healthProbeSettings', variables('frontDoorName'), 'healthProbeSettings1')]"
+              },
+              "loadBalancingSettings": {
+                "id": "[resourceId('Microsoft.Network/frontDoors/loadBalancingSettings', variables('frontDoorName'), 'loadBalancingSettings1')]"
+              },
+              "resourceState": "Enabled"
+            }
+          }
+        ],
+        "healthProbeSettings": [
+          {
+            "name": "healthProbeSettings1",
+            "properties": {
+              "intervalInSeconds": 255,
+              "path": "/health",
+              "protocol": "Https",
+              "resourceState": "Enabled"
+            }
+          }
+        ],
+        "frontendEndpoints": [
+          {
+            "name": "frontendEndpoint1",
+            "properties": {
+              "hostName": "[variables('frontDoorDomain')]",
+              "sessionAffinityEnabledState": "Disabled",
+              "sessionAffinityTtlSeconds": 0
+            }
+          }
+        ],
+        "loadBalancingSettings": [
+          {
+            "name": "loadBalancingSettings1",
+            "properties": {
+              "additionalLatencyMilliseconds": 0,
+              "sampleSize": 4,
+              "successfulSamplesRequired": 2
+            }
+          }
+        ],
+        "routingRules": [
+          {
+            "name": "routingRule1",
+            "properties": {
+              "frontendEndpoints": [
+                {
+                  "id": "[resourceId('Microsoft.Network/frontDoors/frontendEndpoints', variables('frontDoorName'), 'frontendEndpoint1')]"
+                }
+              ],
+              "acceptedProtocols": [
+                "Https"
+              ],
+              "patternsToMatch": [
+                "/*"
+              ],
+              "routeConfiguration": {
+                "@odata.type": "#Microsoft.Azure.FrontDoor.Models.FrontdoorForwardingConfiguration",
+                "forwardingProtocol": "HttpsOnly",
+                "backendPool": {
+                  "id": "[resourceId('Microsoft.Network/frontDoors/backendPools', variables('frontDoorName'), 'backendPool1')]"
+                }
+              },
+              "enabledState": "Enabled"
+            }
+          },
+          {
+            "name": "routingRule2",
+            "properties": {
+              "frontendEndpoints": [
+                {
+                  "id": "[resourceId('Microsoft.Network/frontDoors/frontendEndpoints', variables('frontDoorName'), 'frontendEndpoint1')]"
+                }
+              ],
+              "acceptedProtocols": [
+                "Https"
+              ],
+              "patternsToMatch": [
+                "/api/*"
+              ],
+              "routeConfiguration": {
+                "@odata.type": "#Microsoft.Azure.FrontDoor.Models.FrontdoorRedirectConfiguration",
+                "customFragment": null,
+                "customHost": "[variables('botAppDomain')]",
+                "customPath": "",
+                "redirectProtocol": "HttpsOnly",
+                "customQueryString": null,
+                "redirectType": "PermanentRedirect"
+              },
+              "enabledState": "Enabled"
+            }
+          }
+        ],
+        "enabledState": "Enabled",
+        "friendlyName": "[variables('frontDoorName')]"
+      }
     }
   ],
   "outputs": {
@@ -409,7 +557,7 @@
     },
     "appDomain": {
       "type": "String",
-      "value": "[variables('botAppDomain')]"
+      "value": "[if(variables('useFrontDoor'), variables('frontDoorDomain'), concat('Please create a custom domain name for ', variables('botAppDomain'), ' and use that in the manifest'))]"
     }
   }
 }

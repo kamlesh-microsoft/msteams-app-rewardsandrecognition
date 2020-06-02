@@ -23,7 +23,8 @@ export class AxiosJWTDecorator {
 
             return await axios.delete(url, config);
         } catch (error) {
-            return this.handleError(error);
+            this.handleError(error);
+            throw error;
         }
     }
 
@@ -46,7 +47,8 @@ export class AxiosJWTDecorator {
 
             return await axios.post(url, data, config);
         } catch (error) {
-            return this.handleError(error);
+            this.handleError(error);
+            throw error;
         }
     }
 
@@ -68,7 +70,8 @@ export class AxiosJWTDecorator {
 
             return await axios.put(url, data, config);
         } catch (error) {
-            return this.handleError(error);
+            this.handleError(error);
+            throw error;
         }
     }
 
@@ -87,7 +90,8 @@ export class AxiosJWTDecorator {
 
             return await axios.get(url, config);
         } catch (error) {
-            return this.handleError(error);
+            this.handleError(error);
+            throw error;
         }
     }
 
@@ -98,12 +102,16 @@ export class AxiosJWTDecorator {
     private handleError(error: any) {
         if (error.hasOwnProperty("response")) {
             const errorStatus = error.response.status;
-            if (errorStatus === 401) {
-                window.location.href = `/signin?redirect=${window.location.href}`;
+            if (errorStatus === 403) {
+                window.location.href = "/errorpage/403";
+            } else if (errorStatus === 401) {
+                window.location.href = "/errorpage/401";
+            } else {
+                window.location.href = "/errorpage";
             }
+        } else {
+            window.location.href = "/errorpage";
         }
-
-        return error;
     }
 
     private async setupAuthorizationHeader(

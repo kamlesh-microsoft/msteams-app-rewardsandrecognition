@@ -8,6 +8,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Providers
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Microsoft.Teams.Apps.RewardAndRecognition.Models;
     using Microsoft.WindowsAzure.Storage.Table;
@@ -20,16 +21,24 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Providers
         private const string RewardCycleTable = "RewardCycleDetail";
 
         /// <summary>
+        /// Sends logs to the Application Insights service.
+        /// </summary>
+        private readonly ILogger logger;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="RewardCycleStorageProvider"/> class.
         /// </summary>
         /// <param name="storageOptions">A set of key/value application storage configuration properties.</param>
-        public RewardCycleStorageProvider(IOptionsMonitor<StorageOptions> storageOptions)
+        /// <param name="logger">Instance to send logs to the application insights service.</param>
+        public RewardCycleStorageProvider(IOptionsMonitor<StorageOptions> storageOptions, ILogger<RewardCycleStorageProvider> logger)
             : base(storageOptions, RewardCycleTable)
         {
             if (storageOptions == null)
             {
                 throw new ArgumentNullException(nameof(storageOptions));
             }
+
+            this.logger = logger;
         }
 
         /// <summary>
@@ -101,6 +110,30 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Providers
         }
 
         /// <summary>
+        /// This method is used get active award cycle details for all teams.
+        /// </summary>
+        /// <returns><see cref="Task"/> that represents reward cycle entity is saved or updated.</returns>
+        public async Task<List<RewardCycleEntity>> GetActiveAwardCycleForAllTeamsAsync()
+        {
+            await this.EnsureInitializedAsync();
+
+            // Get all active reward cycle
+            string filterActiveCycle = TableQuery.GenerateFilterConditionForInt("RewardCycleState", QueryComparisons.Equal, (int)RewardCycleState.Active);
+            var query = new TableQuery<RewardCycleEntity>().Where(filterActiveCycle);
+            TableContinuationToken continuationToken = null;
+            var activeCycles = new List<RewardCycleEntity>();
+
+            do
+            {
+                var queryResult = await this.CloudTable.ExecuteQuerySegmentedAsync(query, continuationToken);
+                activeCycles.AddRange(queryResult?.Results);
+                continuationToken = queryResult?.ContinuationToken;
+            }
+            while (continuationToken != null);
+            return activeCycles as List<RewardCycleEntity>;
+        }
+
+        /// <summary>
         /// This method is used to start reward cycle is the start date matches the current date and stops the reward cycle based on the flags.
         /// </summary>
         /// <returns><see cref="Task"/> that represents reward cycle entity is saved or updated.</returns>
@@ -108,9 +141,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Providers
         {
             await this.EnsureInitializedAsync();
 
-            // Get all unpublished reward cycle
-            string filterPublish = TableQuery.GenerateFilterConditionForInt("ResultPublished", QueryComparisons.Equal, (int)ResultPublishState.Unpublished);
-            var query = new TableQuery<RewardCycleEntity>().Where(filterPublish);
+            var query = new TableQuery<RewardCycleEntity>();
             TableContinuationToken continuationToken = null;
             var activeCycles = new List<RewardCycleEntity>();
 
@@ -122,13 +153,16 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Providers
             }
             while (continuationToken != null);
 
+            activeCycles = activeCycles.GroupBy(row => row.TeamId, (key, group) => group.OrderByDescending(rewardCycle => rewardCycle.Timestamp).FirstOrDefault()).ToList();
+
             // update reward cycle state
             foreach (RewardCycleEntity currentCycle in activeCycles)
             {
                 var newCycle = this.SetAwardCycle(currentCycle);
 
                 TableOperation updateOperation = TableOperation.InsertOrReplace(newCycle);
-                var result = await this.CloudTable.ExecuteAsync(updateOperation);
+                await this.CloudTable.ExecuteAsync(updateOperation);
+                this.logger.LogInformation($"Reward cycle set to {(RewardCycleState)newCycle.RewardCycleState} TeamId: {newCycle.TeamId}");
             }
 
             return true;
@@ -142,13 +176,12 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Providers
         private RewardCycleEntity SetAwardCycle(RewardCycleEntity currentCycle)
         {
             DateTime currentUtcTime = DateTime.UtcNow;
-
-            // if recurring :false
             if (currentCycle.IsRecurring == (int)RecurringState.NonRecursive)
             {
                 // current date should be between start date and end date
-                if (currentUtcTime.Date >= currentCycle.RewardCycleStartDate.Date
-                    && currentUtcTime.Date <= currentCycle.RewardCycleEndDate.Date)
+                if (currentUtcTime >= currentCycle.RewardCycleStartDate.Date
+                    && currentUtcTime <= currentCycle.RewardCycleEndDate.Date
+                    && currentCycle.ResultPublished != (int)ResultPublishState.Published)
                 {
                     currentCycle.RewardCycleState = (int)RewardCycleState.Active;
                 }
@@ -164,7 +197,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Providers
                 switch (occurrenceType)
                 {
                     case OccurrenceType.NoEndDate:
-                        if (currentUtcTime.Date > currentCycle.RewardCycleEndDate.Date)
+                        if (currentUtcTime > currentCycle.RewardCycleEndDate.Date)
                         {
                             // set a new award cycle for same duration.
                             this.GetNewCycle(currentCycle);
@@ -172,16 +205,18 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Providers
 
                         break;
                     case OccurrenceType.EndDate:
+                        currentCycle.RangeOfOccurrenceEndDate = currentCycle.RangeOfOccurrenceEndDate?.Date.ToUniversalTime();
                         int cycleDurationInDays = (currentCycle.RewardCycleEndDate.Date - currentCycle.RewardCycleStartDate.Date).Days;
-                        int? remainingDaysInOccurrenceEndDate = (currentCycle.RangeOfOccurrenceEndDate?.Date - currentUtcTime.Date)?.Days;
+                        int? remainingDaysInOccurrenceEndDate = (currentCycle.RangeOfOccurrenceEndDate?.Date - currentUtcTime)?.Days;
 
-                        if (currentUtcTime.Date <= currentCycle.RewardCycleEndDate.Date
-                            && currentUtcTime.Date >= currentCycle.RewardCycleStartDate.Date)
+                        if (currentUtcTime <= currentCycle.RewardCycleEndDate.Date
+                            && currentUtcTime >= currentCycle.RewardCycleStartDate.Date
+                            && currentCycle.ResultPublished != (int)ResultPublishState.Published)
                         {
                             currentCycle.RewardCycleState = (int)RewardCycleState.Active;
                         }
-                        else if (currentUtcTime.Date > currentCycle.RewardCycleEndDate.Date
-                            && currentUtcTime.Date <= currentCycle.RangeOfOccurrenceEndDate?.Date
+                        else if (currentUtcTime > currentCycle.RewardCycleEndDate.Date
+                            && currentUtcTime <= currentCycle.RangeOfOccurrenceEndDate?.Date
                             && remainingDaysInOccurrenceEndDate > cycleDurationInDays)
                         {
                             // set a new award cycle for same duration till occurrence end date.
@@ -195,13 +230,14 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Providers
                         break;
                     case OccurrenceType.Occurrence:
                         if (currentCycle.NumberOfOccurrences > 0
-                            && (currentUtcTime.Date > currentCycle.RewardCycleEndDate.Date))
+                            && (currentUtcTime > currentCycle.RewardCycleEndDate.Date))
                         {
                             this.GetNewCycle(currentCycle);
                             currentCycle.NumberOfOccurrences -= 1;
                         }
                         else if (currentCycle.NumberOfOccurrences >= 0 &&
-                            currentUtcTime.Date <= currentCycle.RewardCycleEndDate.Date)
+                            currentUtcTime <= currentCycle.RewardCycleEndDate.Date
+                            && currentCycle.ResultPublished != (int)ResultPublishState.Published)
                         {
                             currentCycle.RewardCycleState = (int)RewardCycleState.Active;
                         }

@@ -24,14 +24,14 @@ const AwardsTable: React.FunctionComponent<IAwardsTableProps> = props => {
                 { content: <div />, key: "check-box", className: "table-checkbox-cell" },
                 { content: <div />, key: "image", className: "table-image-cell" },
                 {
-                    content: <Text weight="regular" content={t('awardName')} />, key: "response"
+                    content: <Text weight="semibold" content={t('awardName')} />, key: "response", className: "award-table-name"
                 },
-                { content: <Text weight="regular" content={t('awardDescription')} />, key: "questions" }
+                { content: <Text weight="semibold" content={t('awardDescription')} />, key: "questions", className: "award-table-description" }
             ]
             :
             [
-                { content: <Text weight="regular" content={t('awardName')} />, key: "response" },
-                { content: <Text weight="regular" content={t('awardDescription')} />, key: "questions" }
+                { content: <Text weight="semibold" content={t('awardName')} />, key: "response", className: "award-table-name"},
+                { content: <Text weight="semibold" content={t('awardDescription')} />, key: "questions", className: "award-table-description" }
             ],
     };
 
@@ -46,13 +46,13 @@ const AwardsTable: React.FunctionComponent<IAwardsTableProps> = props => {
                         content: <Image alt="NA" className="award-image-icon" fluid src={(value.awardLink === null || value.awardLink === "") ? getBaseUrl() + "/content/DefaultAwardImage.png" : value.awardLink} />
                         , key: index + "2", className: "table-image-cell"
                     },
-                    { content: <Text content={value.AwardName} title={value.AwardName} />, key: index + "3", truncateContent: true },
-                    { content: <Text content={value.awardDescription} title={value.awardDescription} />, key: index + "4", truncateContent: true }
+                    { content: <Text content={value.AwardName} title={value.AwardName} />, key: index + "3", truncateContent: true, className: "award-table-name"},
+                    { content: <Text content={value.awardDescription} title={value.awardDescription} />, key: index + "4", truncateContent: true, className:"award-table-description"}
                 ]
                 :
                 [
-                    { content: <Text content={value.AwardName} title={value.AwardName} />, key: index + "2", truncateContent: true },
-                    { content: <Text content={value.awardDescription} title={value.awardDescription} />, key: index + "3", truncateContent: true }
+                    { content: <Text content={value.AwardName} title={value.AwardName} />, key: index + "2", truncateContent: true, className: "award-table-name"},
+                    { content: <Text content={value.awardDescription} title={value.awardDescription} />, key: index + "3", truncateContent: true, className:"award-table-description"}
                 ],
         }
     ));

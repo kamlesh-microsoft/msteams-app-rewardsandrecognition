@@ -6,7 +6,7 @@ import * as React from "react";
 import { SeverityLevel } from "@microsoft/applicationinsights-web";
 import * as microsoftTeams from "@microsoft/teams-js";
 import { createBrowserHistory } from "history";
-import { Button, Loader, Flex, Text, themes, Dialog, Icon, Image } from "@fluentui/react-northstar";
+import { Button, Loader, Flex, Text, themes, Dialog, Icon, Image, Checkbox } from "@fluentui/react-northstar";
 import { getAllAwardNominations, publishAwardNominations } from "../api/nominate-awards-api";
 import { getRewardCycle, setRewardCycle } from "../api/reward-cycle-api";
 import { sendWinnerNotification } from "../api/notification-api";
@@ -19,9 +19,11 @@ import "../styles/site.css";
 import { RewardCycleState, RewardPublishState } from "../models/award-cycle-state";
 import Resources from "../constants/resources";
 import { getApplicationInsightsInstance } from "../helpers/app-insights";
-import { ResultDetails } from "../models/result";
+import { ResultDetails, NominatedAward } from "../models/result";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { navigateToErrorPage, validateUserPartOfTeam } from "../helpers/utility";
+import { any } from "prop-types";
+import { async } from "q";
 let moment = require('moment');
 
 interface IState {
@@ -44,6 +46,10 @@ interface IState {
     activeCycleId: string;
     isRewardCycleConfigured: boolean;
     currentAwardCycleDateRange: string | "";
+    currentAwardCycleEndDate: string | "";
+    distinctNominatedAwards: any;
+    showPublishedWinners: boolean;
+    showChatOption: boolean;
 }
 
 const browserHistory = createBrowserHistory({ basename: "" });
@@ -61,6 +67,7 @@ class PublishAward extends React.Component<WithTranslation, IState>
     botId: string;
     appBaseUrl: string;
     appUrl: string = (new URL(window.location.href)).origin;
+
 
     constructor(props: any) {
         super(props);
@@ -84,6 +91,10 @@ class PublishAward extends React.Component<WithTranslation, IState>
             activeCycleId: "",
             isRewardCycleConfigured: false,
             currentAwardCycleDateRange: "",
+            distinctNominatedAwards: Array<NominatedAward>(),
+            currentAwardCycleEndDate: "",
+            showPublishedWinners: false,
+            showChatOption: false
         };
 
         let search = window.location.search;
@@ -93,6 +104,7 @@ class PublishAward extends React.Component<WithTranslation, IState>
         this.teamId = params.get("teamId");
         this.botId = '';
         this.appBaseUrl = window.location.origin;
+
     }
 
     /** Called once component is mounted. */
@@ -104,12 +116,12 @@ class PublishAward extends React.Component<WithTranslation, IState>
             this.teamId = context.teamId;
         });
 
+        this.appInsights = getApplicationInsightsInstance(this.telemetry, browserHistory);
         let flag = await validateUserPartOfTeam(this.teamId!, this.userObjectId!)
         if (flag) {
             await this.getBotSetting();
-            this.appInsights = getApplicationInsightsInstance(this.telemetry, browserHistory);
             await this.validateUserProfileInTeam();
-            await this.getRewardCycle();
+            await this.getRewardCycle(this.state.isAdminUser);
             if (this.state.activeCycleId !== undefined || this.state.activeCycleId !== "") {
                 await this.getPublishAwardDetails();
             }
@@ -142,9 +154,9 @@ class PublishAward extends React.Component<WithTranslation, IState>
     /**
     *Get award nomination details from API
     */
-    async getRewardCycle() {
+    async getRewardCycle(isActivecycle: boolean) {
         this.appInsights.trackTrace({ message: `'getRewardCycle' - Initiated request`, properties: { User: this.userObjectId }, severityLevel: SeverityLevel.Information });
-        let response = await getRewardCycle(this.teamId!, this.state.isAdminUser)
+        let response = await getRewardCycle(this.teamId!, isActivecycle)
         if (response.status === 200 && response.data) {
             this.appInsights.trackTrace({ message: `'getRewardCycle' - Request success`, properties: { User: this.userObjectId }, severityLevel: SeverityLevel.Information });
             let rewardcycle = response.data;
@@ -156,10 +168,22 @@ class PublishAward extends React.Component<WithTranslation, IState>
             });
         }
         else {
-            this.setState({
-                isRewardCycleConfigured: false,
-                currentAwardCycleDateRange: ""
-            });
+
+            // check if reward cycle is configured by admin for non-admin preview
+            let rewardResponse = await getRewardCycle(this.teamId!, true);
+            if (rewardResponse.status === 200 && rewardResponse.data) {
+                this.setState({
+                    isRewardCycleConfigured: true,
+                    currentAwardCycleDateRange: (moment(rewardResponse.data.rewardCycleStartDate).format("MMMM Do YYYY") + " to " + moment(rewardResponse.data.rewardCycleEndDate).format("MMMM Do YYYY")).toString(),
+                    currentAwardCycleEndDate: (moment(rewardResponse.data.rewardCycleEndDate).format("MMMM Do YYYY")).toString()
+                });
+            }
+            else {
+                this.setState({
+                    isRewardCycleConfigured: false,
+                    currentAwardCycleDateRange: ""
+                });
+            }
         }
     }
 
@@ -186,13 +210,15 @@ class PublishAward extends React.Component<WithTranslation, IState>
                     if (adminDetails.data.AdminObjectId === this.userObjectId) {
                         this.setState({
                             isAdminUser: true,
-                            isPublishedAwards: false
+                            isPublishedAwards: false,
+                            showChatOption: true
                         });
                     }
                     else {
                         this.setState({
                             isAdminUser: false,
-                            isPublishedAwards: true
+                            isPublishedAwards: true,
+                            showChatOption: false
                         });
                     }
                 }
@@ -212,8 +238,9 @@ class PublishAward extends React.Component<WithTranslation, IState>
             completionBotId: this.botId,
             title: t('manageAwardButtonText'),
             height: 700,
-            width: 800,
+            width: 700,
             url: `${this.appBaseUrl}/awards-tab?telemetry=${this.telemetry}&theme=${this.theme}&teamId=${this.teamId}&locale=${this.locale}`,
+            fallbackUrl: `${this.appBaseUrl}/awards-tab?telemetry=${this.telemetry}&theme=${this.theme}&teamId=${this.teamId}&locale=${this.locale}`,
         }, this.submitHandler);
     }
 
@@ -227,13 +254,13 @@ class PublishAward extends React.Component<WithTranslation, IState>
             height: 460,
             width: 600,
             url: `${this.appBaseUrl}/config-admin-page?telemetry=${this.telemetry}&teamId=${this.teamId}&theme=${this.theme}&locale=${this.locale}`,
+            fallbackUrl: `${this.appBaseUrl}/config-admin-page?telemetry=${this.telemetry}&teamId=${this.teamId}&theme=${this.theme}&locale=${this.locale}`,
         }, this.submitHandler);
     }
 
     onChatButtonClick = (nominationDetails: any, t: any) => {
-        let nominee = nominationDetails.NominatedByName;
-        let msg = t('chatMessage') + nominee;
-        let url = `https://teams.microsoft.com/l/chat/0/0?users=${nominee}&message=${msg}`;
+        let msg = t('chatWithNominatorMessageText', { nominator: nominationDetails.NominatedByName, award: nominationDetails.AwardName });
+        let url = `https://teams.microsoft.com/l/chat/0/0?users=${nominationDetails.NominatedByPrincipalName}&message=${msg}`;
         microsoftTeams.executeDeepLink(url);
     }
 
@@ -291,6 +318,7 @@ class PublishAward extends React.Component<WithTranslation, IState>
         if (response) {
             let notifyResponse = await sendWinnerNotification(this.state.awardWinner);
             if (notifyResponse.status === 200) {
+                this.appInsights.trackEvent({ name: `Publish result` }, { User: this.userObjectId, Team: this.teamId! });
 
                 // Update active award cycle to published
                 let awardCycle = this.state.activeAwardCycle;
@@ -304,6 +332,7 @@ class PublishAward extends React.Component<WithTranslation, IState>
                 }
 
                 await this.updatePreviewState();
+                await this.showWinnersInAdminTab();
             }
         }
         else {
@@ -317,8 +346,20 @@ class PublishAward extends React.Component<WithTranslation, IState>
 
     updatePreviewState = async () => {
         await this.validateUserProfileInTeam();
-        await this.getRewardCycle();
+        await this.getRewardCycle(this.state.isAdminUser);
         await this.getPublishAwardDetails();
+    }
+
+    showWinnersInAdminTab = async () => {
+        let flag = this.state.showPublishedWinners;
+        this.setState({ showPublishedWinners: flag ? false : true, Loader: true })
+        await this.getRewardCycle(flag);
+        this.setState({ isPublishedAwards: !flag, showChatOption: flag })
+        await this.getPublishAwardDetails();
+
+        this.setState({
+            Loader: false, selectedNominees: [], awardWinner: []
+        });
     }
 
     /**
@@ -362,6 +403,8 @@ class PublishAward extends React.Component<WithTranslation, IState>
             if (awards.status === 200 && awards.data) {
                 this.appInsights.trackTrace({ message: `'getAllAwards' - Request success`, properties: { User: this.userObjectId }, severityLevel: SeverityLevel.Information });
 
+                this.getNominatedAwards(nominations.data);
+
                 this.setState({
                     distinctAwards: awards.data
                 });
@@ -372,6 +415,37 @@ class PublishAward extends React.Component<WithTranslation, IState>
         }
         this.setState({
             Loader: false
+        });
+    }
+
+    getNominatedAwards = (nominations: any) => {
+        let awardIds = nominations.map(item => item.AwardId)
+            .filter((value, index, self) => self.indexOf(value) === index);
+
+        this.setState({ distinctNominatedAwards: [] });
+        let nominatedAwards = this.state.distinctNominatedAwards;
+        console.log(nominations);
+
+        awardIds.forEach(function (value: string | undefined) {
+            let filter = nominations.filter(row => row.AwardId === value).shift();
+            let results: NominatedAward = {
+                AwardId: value,
+                AwardName: filter.AwardName,
+            };
+            nominatedAwards.push(results);
+        });
+
+        nominatedAwards = nominatedAwards.sort(function (firstElement, secondElement) {
+            var awardName = firstElement.AwardName.toLowerCase(), awardNameNext = secondElement.AwardName.toLowerCase();
+            if (awardName < awardNameNext)
+                return -1;
+            if (awardName > awardNameNext)
+                return 1;
+            return 0;
+        });
+
+        this.setState({
+            distinctNominatedAwards: nominatedAwards
         });
     }
 
@@ -386,16 +460,28 @@ class PublishAward extends React.Component<WithTranslation, IState>
             return (
                 <div>
                     <ApprovedAwardTable awardWinner={this.state.awardWinner}
-                        distinctAwards={this.state.distinctAwards}
+                        distinctAwards={this.state.distinctNominatedAwards}
                     />
                 </div>
             );
         }
     }
 
+    private showWinnersTabToggle = (t: any) => {
+        return (<Flex gap="gap.large" >
+            {this.state.isAdminUser && <div><Text content={t('showWiinersInAdminTabText')} />
+                <Checkbox toggle
+                    checked={this.state.showPublishedWinners}
+                    onChange={() => this.showWinnersInAdminTab()}
+                /></div>
+            }</Flex>);
+    }
+
     private pageHeader = (t: any) => {
         return (<Flex gap="gap.small" >
-            {this.state.currentAwardCycleDateRange != "" && <Text weight="bold" align="center" content={t('rewardCycleText') + this.state.currentAwardCycleDateRange} />}
+            {this.state.currentAwardCycleDateRange != "" &&
+                <Text weight="semibold" className="award-cycle-header" align="center" content={(this.state.showChatOption ? t('rewardCycleText') : t('AwardWinnersCycleText')) + this.state.currentAwardCycleDateRange} />}
+            {this.state.currentAwardCycleDateRange === "" && this.showWinnersTabToggle(t)}
             {this.state.isAdminUser &&
                 <>
                     <Flex.Item push>
@@ -446,22 +532,22 @@ class PublishAward extends React.Component<WithTranslation, IState>
         } else if (!this.state.Loader && this.state.isUserPartOfTeam && this.state.isNominationPriviewAvailable && this.state.isRewardCycleConfigured) {
             return (
                 <div>
-                    <PublishAwardTable showCheckbox={this.state.isAdminUser}
+                    <PublishAwardTable showCheckbox={this.state.showChatOption}
                         publishData={this.state.publishAwardDataSet}
-                        distinctAwards={this.state.distinctAwards}
+                        distinctAwards={this.state.distinctNominatedAwards}
                         onCheckBoxChecked={this.onNominationSelected}
                         onChatButtonClick={this.onChatButtonClick}
                     />
                 </div>
             );
         }
-        else if (!this.state.Loader && !this.state.isNominationPriviewAvailable && this.state.isRewardCycleConfigured) {
+        else if (!this.state.Loader && !this.state.isNominationPriviewAvailable && this.state.isRewardCycleConfigured && this.state.isAdminUser) {
             return (<Flex className="error-container" hAlign="center" vAlign="stretch">
                 <div>
                     <div><Flex hAlign="center" vAlign="stretch">
                         <Image className="preview-image" fluid src={this.appUrl + "/content/messages.png"} />
                     </Flex></div>
-                    <div><Text content={t('nominationPreviewMessage')} /></div>
+                    <div><Text content={!this.state.showPublishedWinners ? t('nominationPreviewMessage') : (t('resultPublishNotificationText') + this.state.currentAwardCycleEndDate)} /></div>
                 </div>
             </Flex>)
         }
@@ -472,6 +558,16 @@ class PublishAward extends React.Component<WithTranslation, IState>
                         <Image className="preview-image" fluid src={this.appUrl + "/content/messages.png"} />
                     </Flex></div>
                     <div><Text content={t('cycleValidationMessage')} /></div>
+                </div>
+            </Flex>)
+        }
+        else if (!this.state.Loader && this.state.isRewardCycleConfigured && this.state.currentAwardCycleDateRange !== "" && !this.state.isAdminUser) {
+            return (<Flex className="error-container" hAlign="center" vAlign="stretch">
+                <div>
+                    <div><Flex hAlign="center" vAlign="stretch">
+                        <Image className="preview-image" fluid src={this.appUrl + "/content/messages.png"} />
+                    </Flex></div>
+                    <div><Text content={t('resultPublishNotificationText') + this.state.currentAwardCycleEndDate} /></div>
                 </div>
             </Flex>)
         }
@@ -486,6 +582,7 @@ class PublishAward extends React.Component<WithTranslation, IState>
             <div className="page-container">
                 <div className="publish-table-container">
                     {this.pageHeader(t)}
+                    {this.state.currentAwardCycleDateRange != "" && this.showWinnersTabToggle(t)}
                     <div>
                         {this.getWrapperPage(t)}
                     </div>

@@ -24,7 +24,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Bot
         /// <param name="rewardAndRecognitionActivityMiddleWare">Represents middle ware that can operate on incoming activities.</param>
         /// <param name="localizer">The current cultures' string localizer.</param>
         /// <param name="conversationState">conversationState.</param>
-        public RewardAndRecognitionAdapterWithErrorHandler(IConfiguration configuration, ILogger<IBotFrameworkHttpAdapter> logger, RewardAndRecognitionActivityMiddleWare rewardAndRecognitionActivityMiddleWare, IStringLocalizer<Strings> localizer, ConversationState conversationState = null)
+        public RewardAndRecognitionAdapterWithErrorHandler(IConfiguration configuration, ILogger<IBotFrameworkHttpAdapter> logger, RewardAndRecognitionActivityMiddleware rewardAndRecognitionActivityMiddleWare, IStringLocalizer<Strings> localizer, ConversationState conversationState = null)
             : base(configuration)
         {
             if (rewardAndRecognitionActivityMiddleWare == null)

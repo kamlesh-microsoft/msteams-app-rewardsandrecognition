@@ -21,7 +21,14 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Controllers
     [Authorize]
     public class AwardsController : BaseRewardAndRecognitionController
     {
+        /// <summary>
+        /// Instance to send logs to the Application Insights service.
+        /// </summary>
         private readonly ILogger<AwardsController> logger;
+
+        /// <summary>
+        /// Helper for fetching award details from azure table storage.
+        /// </summary>
         private readonly IAwardsStorageProvider storageProvider;
 
         /// <summary>
@@ -118,20 +125,21 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Controllers
         /// Delete call to delete award details data in Microsoft Azure Table storage.
         /// </summary>
         /// <param name="awardIds">User selected response Ids.</param>
+        /// <param name="teamId">Holds team Id.</param>
         /// <returns>Returns true for successful operation.</returns>
         [HttpDelete("awards")]
-        public async Task<IActionResult> DeleteAsync(string awardIds)
+        public async Task<IActionResult> DeleteAsync(string awardIds, string teamId)
         {
             try
             {
-                if (awardIds == null)
+                if (awardIds == null || teamId == null)
                 {
                     this.logger.LogError("Error while deleting award details data in Microsoft Azure Table storage.");
                     return this.BadRequest();
                 }
 
-                IList<string> awards = awardIds.Split(",");
-                return this.Ok(await this.storageProvider.DeleteAwardsAsync(awards));
+                IList<string> awards = awardIds?.Split(",");
+                return this.Ok(await this.storageProvider.DeleteAwardsAsync(awards, teamId));
             }
             catch (Exception ex)
             {

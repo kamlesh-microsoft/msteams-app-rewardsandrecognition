@@ -30,7 +30,7 @@ The recommended SKUs for a production environment are:
 
 Prices were taken from the [Azure Pricing Overview](https://azure.microsoft.com/en-us/pricing/) on 08 April 2020, for the West US 2 region.
 
-Use the [Azure Pricing Calculator](https://azure.com/e/70ac9cd54e3841999610b06e019d9b68) to model different service tiers and usage patterns.
+Use the [Azure Pricing Calculator](https://azure.com/e/3753dd79025c483382d0c1b829044cff) to model different service tiers and usage patterns.
 
 Resource                                    | Tier          | Load          | Monthly price
 ---                                         | ---           | ---           | --- 

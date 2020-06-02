@@ -15,6 +15,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Controllers
     using Microsoft.Bot.Builder.Integration.AspNet.Core;
     using Microsoft.Bot.Connector.Authentication;
     using Microsoft.Bot.Schema;
+    using Microsoft.Bot.Schema.Teams;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Localization;
     using Microsoft.Extensions.Logging;
@@ -37,13 +38,28 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Controllers
         private const string Channel = "msteams";
 
         /// <summary>
-        /// Channel conversation type to send notification.
+        /// Bot adapter.
         /// </summary>
-        private const string ChannelConversationType = "channel";
         private readonly IBotFrameworkHttpAdapter adapter;
+
+        /// <summary>
+        /// Represents a set of key/value application configuration properties.
+        /// </summary>
         private readonly IConfiguration configuration;
+
+        /// <summary>
+        /// Instance to send logs to the Application Insights service.
+        /// </summary>
         private readonly ILogger<NotificationController> logger;
+
+        /// <summary>
+        /// Provider for fetching information about team details from storage table.
+        /// </summary>
         private readonly ITeamStorageProvider teamStorageProvider;
+
+        /// <summary>
+        /// The current cultures' string localizer.
+        /// </summary>
         private readonly IStringLocalizer<Strings> localizer;
 
         /// <summary>
@@ -85,33 +101,34 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Controllers
                 string serviceUrl = teamDetails.ServiceUrl;
                 string appId = this.configuration["MicrosoftAppId"];
                 string appBaseUrl = this.configuration.GetValue<string>("Bot:AppBaseUri");
+                string manifestId = this.configuration.GetValue<string>("Bot:ManifestId");
                 MicrosoftAppCredentials.TrustServiceUrl(serviceUrl);
-                var conversationReference = new ConversationReference()
+                var conversationParameters = new ConversationParameters()
                 {
-                    ChannelId = Channel,
+                    ChannelData = new TeamsChannelData() { Team = new TeamInfo() { Id = teamId }, Channel = new ChannelInfo() { Id = teamId } },
+                    Activity = (Activity)MessageFactory.Carousel(WinnerCarouselCard.GetAwardWinnerCard(appBaseUrl, details, this.localizer, manifestId)),
                     Bot = new ChannelAccount() { Id = appId },
-                    ServiceUrl = serviceUrl,
-                    Conversation = new ConversationAccount()
-                    {
-                        ConversationType = ChannelConversationType,
-                        IsGroup = true,
-                        Id = teamId,
-                        TenantId = this.configuration.GetValue<string>("Bot:TenantId"),
-                    },
+                    IsGroup = true,
+                    TenantId = this.configuration.GetValue<string>("Bot:TenantId"),
                 };
 
-                await ((BotFrameworkAdapter)this.adapter).ContinueConversationAsync(
-                               appId,
-                               conversationReference,
-                               async (conversationTurnContext, conversationCancellationToken) =>
-                               {
-                                   System.Diagnostics.Debug.WriteLine(conversationTurnContext.Activity.ServiceUrl);
-                                   var result = await conversationTurnContext.SendActivityAsync(MessageFactory.Carousel(WinnerCarouselCard.GetAwardWinnerCard(appBaseUrl, details, this.localizer)));
-                                   Activity mentionActivity = await CardHelper.GetMentionActivityAsync(emails, claims.FromId, teamId, conversationTurnContext, this.localizer, this.logger, default);
-                                   conversationReference.Conversation.Id = $"{teamId};messageid={result.Id}";
-                                   await conversationTurnContext.SendActivityAsync(mentionActivity);
-                               },
-                               default);
+                await ((BotFrameworkAdapter)this.adapter).CreateConversationAsync(
+                    Channel,
+                    serviceUrl,
+                    new MicrosoftAppCredentials(this.configuration.GetValue<string>("MicrosoftAppId"), this.configuration.GetValue<string>("MicrosoftAppPassword")),
+                    conversationParameters,
+                    async (turnContext, cancellationToken) =>
+                    {
+                        Activity mentionActivity = await CardHelper.GetMentionActivityAsync(emails, claims.FromId, teamId, turnContext, this.localizer, this.logger, MentionActivityType.Winner, default);
+                        await ((BotFrameworkAdapter)this.adapter).ContinueConversationAsync(
+                            this.configuration.GetValue<string>("MicrosoftAppId"),
+                            turnContext.Activity.GetConversationReference(),
+                            async (continueConversationTurnContext, continueConversationCancellationToken) =>
+                            {
+                                mentionActivity.ApplyConversationReference(turnContext.Activity.GetConversationReference());
+                                await continueConversationTurnContext.SendActivityAsync(mentionActivity, continueConversationCancellationToken);
+                            }, cancellationToken);
+                    }, default);
 
                 // Let the caller know proactive messages have been sent
                 return new ContentResult()

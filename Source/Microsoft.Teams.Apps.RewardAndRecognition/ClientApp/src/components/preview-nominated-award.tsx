@@ -84,6 +84,7 @@ const PreviewAward = (props: INominatedAwardProps): JSX.Element => {
         const saveNominateDetailsResponse = await saveNominateDetails(nominateEntity);
         if (saveNominateDetailsResponse.status === 200) {
             appInsights.trackTrace({ message: `'saveNominatedDetails' - Request success`, severityLevel: SeverityLevel.Information, properties: { UserEmail: props.NominationAwardPreview.NominatedByPrincipalName } });
+            appInsights.trackEvent({ name: `Nominate award` }, { User: props.NominationAwardPreview.NominatedByPrincipalName, Team: props.NominationAwardPreview.TeamId });
             let toBot = {
                 Command: Constants.SaveNominationCommand,
                 NominatedByName: props.NominationAwardPreview.NominatedByName,
@@ -112,59 +113,61 @@ const PreviewAward = (props: INominatedAwardProps): JSX.Element => {
     * */
     return (
         <>
-            <Flex hAlign="center" className="header-nomination">
-            <Text
-                content={t('previewAwardHeader')}
-            />
-        </Flex>
-            <div className="div-shadow">
-                <Flex gap="gap.medium" padding="padding.medium" hAlign="start" vAlign="center">
-                    <Flex.Item align="start" size="size.small" grow>
-                        <Flex column gap="gap.small" vAlign="stretch">
-                            <Flex space="between">
-                                <Header as="h2" className="word-break" content={props.NominationAwardPreview.AwardName} />
-                            </Flex>
+            <div className="preview-container">
+                <Flex hAlign="center" className="header-nomination">
+                    <Text
+                        content={t('previewAwardHeader')}
+                    />
+                </Flex>
+                <div className="div-shadow">
+                    <div className="div-shadow-nomination">
+                        <Flex gap="gap.medium" padding="padding.medium" hAlign="start" vAlign="center">
+                            <Flex.Item align="start" size="size.small" grow>
+                                <Flex column gap="gap.small" vAlign="stretch">
+                                    <Flex space="between">
+                                        <Header as="h2" className="word-break" content={props.NominationAwardPreview.AwardName} />
+                                    </Flex>
+                                </Flex>
+                            </Flex.Item>
+                            <div className="image-size-alignment">
+                                <Flex.Item align="start" size="size.small">
+                                    <Image className="preview-image-icon" fluid src={props.NominationAwardPreview.ImageUrl} />
+                                </Flex.Item>
+                            </div>
                         </Flex>
-                    </Flex.Item>
-                    <div className="image-size-alignment">
-                        <Flex.Item align="start" size="size.small">
-                            <Image fluid src={props.NominationAwardPreview.ImageUrl} />
-                        </Flex.Item>
+                        <Flex gap="gap.medium" padding="padding.medium" hAlign="start" vAlign="center">
+                            <Flex.Item align="start" size="size.small" grow>
+                                <Flex column gap="gap.small" vAlign="stretch">
+                                    <Flex space="between">
+                                        <Text className="nominee-margin" weight="bold" content={props.NominationAwardPreview.AwardRecipients.join(", ")} />
+                                    </Flex>
+                                </Flex>
+                            </Flex.Item>
+                        </Flex>
+                        <Flex gap="gap.medium" padding="padding.medium" hAlign="start" vAlign="center">
+                            <Flex.Item align="start" size="size.small" grow>
+                                <Flex column gap="gap.small" vAlign="stretch">
+                                    <Flex space="between">
+                                        <Text content={t('nominatedByText') + props.NominationAwardPreview.NominatedByName} />
+                                    </Flex>
+                                </Flex>
+                            </Flex.Item>
+                        </Flex>
+                        <Flex gap="gap.medium" padding="padding.medium" hAlign="start" vAlign="center">
+                            <Flex.Item align="start" size="size.small" grow>
+                                <Flex column gap="gap.small" vAlign="stretch">
+                                    <Flex space="between">
+                                        <Text className="word-break" content={props.NominationAwardPreview.ReasonForNomination} />
+                                    </Flex>
+                                </Flex>
+                            </Flex.Item>
+                        </Flex>
                     </div>
-                </Flex>
-                <Flex gap="gap.medium" padding="padding.medium" hAlign="start" vAlign="center">
-                    <Flex.Item align="start" size="size.small" grow>
-                        <Flex column gap="gap.small" vAlign="stretch">
-                            <Flex space="between">
-                                <Text className="nominee-margin" weight="bold" content={props.NominationAwardPreview.AwardRecipients.join(", ")} />
-                            </Flex>
-                        </Flex>
-                    </Flex.Item>
-                </Flex>
-                <Flex gap="gap.medium" padding="padding.medium" hAlign="start" vAlign="center">
-                    <Flex.Item align="start" size="size.small" grow>
-                        <Flex column gap="gap.small" vAlign="stretch">
-                            <Flex space="between">
-                                <Text content={t('nominatedByText') + props.NominationAwardPreview.NominatedByName} />
-                            </Flex>
-                        </Flex>
-                    </Flex.Item>
-                </Flex>
-                <Flex gap="gap.medium" padding="padding.medium" hAlign="start" vAlign="center">
-                    <Flex.Item align="start" size="size.small" grow>
-                        <Flex column gap="gap.small" vAlign="stretch">
-                            <Flex space="between">
-                                <Text content={t('nominatedForText') + props.NominationAwardPreview.ReasonForNomination} />
-                            </Flex>
-                        </Flex>
-                    </Flex.Item>
-                </Flex>
+                </div>
             </div>
-            <div className="error">
-                <Flex gap="gap.small">
-                    {errorMessage !== null && <Text className="small-margin-left" content={errorMessage} error />}
-                </Flex>
-            </div>
+            <Flex gap="gap.small">
+                {errorMessage !== null && <Text className="small-margin-left" content={errorMessage} error />}
+            </Flex>
             <div className="tab-footer">
                 <div>
                     <Flex space="between">

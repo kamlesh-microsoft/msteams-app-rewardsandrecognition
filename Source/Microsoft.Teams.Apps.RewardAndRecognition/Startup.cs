@@ -14,6 +14,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition
     using Microsoft.Bot.Connector.Authentication;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.IdentityModel.Logging;
     using Microsoft.Teams.Apps.RewardAndRecognition.Authentication;
     using Microsoft.Teams.Apps.RewardAndRecognition.BackgroundService;
 
@@ -56,6 +57,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition
             });
 
             // Register authentication services in DI container.
+            IdentityModelEventSource.ShowPII = true;
             services.AddRewardAndRecognitionAuthentication(this.configuration);
 
             services.AddSingleton<TelemetryClient>();
@@ -73,6 +75,8 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition
             // Background service
             services.AddHostedService<RewardCycleBackgroundService>();
             services.AddSingleton<IRewardCycleHelper, RewardCycleHelper>();
+            services.AddHostedService<NotificationBackgroundService>();
+            services.AddSingleton<INotificationHelper, NotificationHelper>();
         }
 #pragma warning restore CA1506
 

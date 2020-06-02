@@ -10,11 +10,6 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition
     public sealed class RewardAndRecognitionActivityHandlerOptions
     {
         /// <summary>
-        /// Gets or sets a value indicating whether the response to a message should be all uppercase.
-        /// </summary>
-        public bool UpperCaseResponse { get; set; }
-
-        /// <summary>
         /// Gets or sets unique id of Tenant.
         /// </summary>
         public string TenantId { get; set; }

@@ -1,5 +1,4 @@
 ﻿import { getMembersInTeam } from "../api/configure-admin-api";
-import { getAllAwards } from "../api/awards-api";
 
 export const isNullorWhiteSpace = (input: string): boolean => {
     return !input || !input.trim();
@@ -17,7 +16,7 @@ export const getBaseUrl = () => {
     *Navigate to error page
 */
 export const navigateToErrorPage = async (code: string) => {
-    return window.location.href = `/error?code=${code}`;
+    return window.location.href = `/errorpage?code=${code}`;
 }
 
 /**

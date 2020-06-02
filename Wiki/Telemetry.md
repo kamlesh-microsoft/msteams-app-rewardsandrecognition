@@ -1,12 +1,26 @@
-The Rewards and Recognition app logs telemetry to [Azure Application Insights](https://azure.microsoft.com/en-us/services/monitor/). You can go to the respective Application Insights blade of the Azure App Services to view basic telemetry about your services, such as requests, failures, and dependency errors, custom events, traces etc.
+The Awardster app logs telemetry to [Azure Application Insights](https://azure.microsoft.com/en-us/services/monitor/). You can go to the respective Application Insights blade of the Azure App Services to view basic telemetry about your services, such as requests, failures, and dependency errors, custom events, traces etc.
 
-The Rewards and Recognition app integrates with Application Insights to gather bot activity analytics, as described [here](https://blog.botframework.com/2019/03/21/bot-analytics-behind-the-scenes/).
+The Awardster app integrates with Application Insights to gather bot activity analytics, as described [here](https://blog.botframework.com/2019/03/21/bot-analytics-behind-the-scenes/).
 
 The app logs AadObjectId of user for tracing logs. The deployer should ensure that the solution meets their privacy/data retention requirements, and can choose to remove it if they wish.
 
 The app logs following events:
 
->> [PENDING]
+* Events
+- Add Award
+- Edit award
+- Delete award
+- Set reward cycle
+- Nominate award
+- Preview award
+- Set Champion
+- Publish Result
+
+customEvents
+| extend Team= tostring(customDimensions.Team)
+| where name == "<<Event name>>" and Team =="<<Team Id>>"
+| where timestamp >= ago(30d)
+| summarize count(Team)
 
 [[/Images/trace_example.png|troubleshooting guide]]
 

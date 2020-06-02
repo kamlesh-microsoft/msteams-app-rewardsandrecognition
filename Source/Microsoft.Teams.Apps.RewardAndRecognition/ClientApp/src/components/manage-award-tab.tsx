@@ -126,7 +126,7 @@ class AwardsTab extends React.Component<WithTranslation, IState> {
         } else {
             return (
                 <div className="module-container">
-                    <Menu defaultActiveIndex={0} onItemClick={this.onMenuItemClick} items={this.getMenuItems(t)} styles={{ borderBottom: "0", marginBottom: "1rem", marginTop: "0.5rem" }} underlined primary />
+                    <Menu defaultActiveIndex={0}  onItemClick={this.onMenuItemClick} items={this.getMenuItems(t)} className="manage-award-tab-menu"  underlined primary />
                     {this.state.selectedMenuItemIndex === 0 && <ManageAward teamId={this.teamId!} onModifyAward={this.onModifyAward} />}
                     {this.state.selectedMenuItemIndex === 1 && <RewardCycle teamId={this.teamId!} />}
                 </div>

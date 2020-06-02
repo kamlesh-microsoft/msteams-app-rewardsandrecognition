@@ -19,7 +19,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Strings {
@@ -61,7 +61,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Here is your new admin!.
+        ///   Looks up a localized string similar to Your new awards captain is....
         /// </summary>
         public static string AdminHeaderText {
             get {
@@ -70,16 +70,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to **{0}**({1}) has been set as R&amp;R Admin..
-        /// </summary>
-        public static string AdminName {
-            get {
-                return ResourceManager.GetString("AdminName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Admin selection.
+        ///   Looks up a localized string similar to {0} - {1}.
         /// </summary>
         public static string AdminSubheaderText {
             get {
@@ -88,7 +79,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You have already endorsed this nomination. We know that waiting is always the hardest part, but results should be out by {0}..
+        ///   Looks up a localized string similar to You have already endorsed **{0}** for this award..
         /// </summary>
         public static string AlreadyendorsedMessage {
             get {
@@ -97,7 +88,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Here are the winners!.
+        ///   Looks up a localized string similar to And the winners are….
         /// </summary>
         public static string AwardWinnerCardTitle {
             get {
@@ -106,7 +97,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Configure R&amp;R admin.
+        ///   Looks up a localized string similar to Set awards captain.
         /// </summary>
         public static string ConfigureAdminTitle {
             get {
@@ -115,7 +106,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ready to get started? Configure R&amp;R Admin..
+        ///   Looks up a localized string similar to Ready to get started? Select awards captain.
         /// </summary>
         public static string ContentText {
             get {
@@ -133,7 +124,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to There is no active reward cycle going on currently for the team. Please wait for sometime until the reward cycle has been set from admin..
+        ///   Looks up a localized string similar to We&apos;re not currently in an active award cycle. Wait until the next cycle to nominate or endorse a teammate..
         /// </summary>
         public static string CycleValidationMessage {
             get {
@@ -169,7 +160,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Something went wrong. please try again later.
+        ///   Looks up a localized string similar to Something went wrong. Try again in a few minutes..
         /// </summary>
         public static string ErrorMessage {
             get {
@@ -178,7 +169,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This Bot is not installed in the team..
+        ///   Looks up a localized string similar to Bot cannot be used here because it has not been added for this team..
         /// </summary>
         public static string InvalidTeamText {
             get {
@@ -187,7 +178,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to * Manage awards.
+        ///   Looks up a localized string similar to * Allow nomination of your team mates for designated awards..
         /// </summary>
         public static string ManageAwardsBulletPoint {
             get {
@@ -196,7 +187,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to  Go to RnR tab.
+        ///   Looks up a localized string similar to Go to Awardster tab.
         /// </summary>
         public static string ManageRewardTitle {
             get {
@@ -205,16 +196,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Hey {0} way to go! - {1}..
-        /// </summary>
-        public static string MentionText {
-            get {
-                return ResourceManager.GetString("MentionText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to * Nominate.
+        ///   Looks up a localized string similar to * Approve and publish the award winners from the list of nominees..
         /// </summary>
         public static string NominateBulletPoint {
             get {
@@ -259,7 +241,25 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to **Note from team manager:** {0}.
+        ///   Looks up a localized string similar to {0} has been nominated for this award. Feel free to endorse them! Thanks so much! - {1} for your nomination..
+        /// </summary>
+        public static string NominationMentionText {
+            get {
+                return ResourceManager.GetString("NominationMentionText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nominations are about to close, please nominate now..
+        /// </summary>
+        public static string NominationReminderNotificationText {
+            get {
+                return ResourceManager.GetString("NominationReminderNotificationText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to **Note from team owner:** {0}.
         /// </summary>
         public static string NoteForTeamText {
             get {
@@ -273,24 +273,6 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition {
         public static string OkButtonText {
             get {
                 return ResourceManager.GetString("OkButtonText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Publish result.
-        /// </summary>
-        public static string PublishAwardButtonText {
-            get {
-                return ResourceManager.GetString("PublishAwardButtonText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Publish result.
-        /// </summary>
-        public static string PublishAwardResultButtonText {
-            get {
-                return ResourceManager.GetString("PublishAwardResultButtonText", resourceCulture);
             }
         }
         
@@ -322,7 +304,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to * Configure R&amp;R Admin.
+        ///   Looks up a localized string similar to * Set awards captain who can define awards and manage reward nomination cycles..
         /// </summary>
         public static string SetAdminBulletPoint {
             get {
@@ -331,7 +313,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Configure R&amp;R Admin.
+        ///   Looks up a localized string similar to Set awards captain.
         /// </summary>
         public static string SetAdminButtonText {
             get {
@@ -340,7 +322,16 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to * Set reward cycle.
+        ///   Looks up a localized string similar to As awards captain, {0} will define the awards, set the awards cycle, and share the results. Thanks so much! - {1}..
+        /// </summary>
+        public static string SetAdminMentionText {
+            get {
+                return ResourceManager.GetString("SetAdminMentionText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to * Show support for nominees by endorsing their nominations..
         /// </summary>
         public static string SetRewardCycleBulletPoint {
             get {
@@ -349,7 +340,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Thanks! You’ve successfully endorsed **{0}** for **{1}**. Results will be published on **{2}** ..
+        ///   Looks up a localized string similar to You&apos;ve successfully endorsed the nomination of **{0}** for the **{1}**. Results will be shared on **{2}.**.
         /// </summary>
         public static string SuccessfulEndorseMessage {
             get {
@@ -358,11 +349,21 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Currently not supporting any bot command..
+        ///   Looks up a localized string similar to I don&apos;t know that command. Try typing command:
+        ///-Nominate.
         /// </summary>
         public static string UnsupportedBotCommand {
             get {
                 return ResourceManager.GetString("UnsupportedBotCommand", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View results.
+        /// </summary>
+        public static string ViewWinnerTabText {
+            get {
+                return ResourceManager.GetString("ViewWinnerTabText", resourceCulture);
             }
         }
         
@@ -376,7 +377,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Here are some of the things that I can do:.
+        ///   Looks up a localized string similar to Here are some of the things that I can help you do:.
         /// </summary>
         public static string WelcomeSubHeaderText {
             get {
@@ -385,7 +386,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Hello, I am Rewards &amp; Recognition bot and I can help you nominate your team members for performance awards..
+        ///   Looks up a localized string similar to Hello, I am Awardster bot and I can help you nominate your team members for performance awards..
         /// </summary>
         public static string WelcomeTeamCardContent {
             get {
@@ -399,6 +400,15 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition {
         public static string WinnerCardRewardCycleTitle {
             get {
                 return ResourceManager.GetString("WinnerCardRewardCycleTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Congratulations .
+        /// </summary>
+        public static string WinnerMentionText {
+            get {
+                return ResourceManager.GetString("WinnerMentionText", resourceCulture);
             }
         }
         

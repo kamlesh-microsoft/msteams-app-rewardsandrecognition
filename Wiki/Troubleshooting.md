@@ -40,4 +40,4 @@ Redeploy it after fixing the issue/conflict.
 
 **Didn't find your problem here?**
 
-Please, report the issue [here](https://github.com/OfficeDev/microsoft-teams-apps-incidentreport/issues/new)
+Please, report the issue [here](https://github.com/OfficeDev/microsoft-teams-apps-rewardsandrecognition/issues/new)

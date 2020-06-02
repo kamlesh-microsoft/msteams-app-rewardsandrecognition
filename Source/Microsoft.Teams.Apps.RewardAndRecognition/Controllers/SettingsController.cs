@@ -23,6 +23,9 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Controllers
         /// </summary>
         private readonly ILogger logger;
 
+        /// <summary>
+        /// Represents a set of key/value application configuration properties.
+        /// </summary>
         private readonly IConfiguration configuration;
 
         /// <summary>

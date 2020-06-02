@@ -4,6 +4,7 @@
 
 namespace Microsoft.Teams.Apps.RewardAndRecognition.Providers
 {
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Microsoft.Teams.Apps.RewardAndRecognition.Models;
 
@@ -12,7 +13,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Providers
     /// </summary>
     public interface IRewardCycleStorageProvider
     {
-         /// <summary>
+        /// <summary>
         /// This method is used to fetch reward cycle details for a given team Id.
         /// </summary>
         /// <param name="teamId">Team Id.</param>
@@ -38,5 +39,11 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Providers
         /// </summary>
         /// <returns><see cref="Task"/> that represents reward cycle entity is saved or updated.</returns>
         Task<bool> UpdateCycleStatusAsync();
+
+        /// <summary>
+        /// This method is used get active award cycle details for all teams.
+        /// </summary>
+        /// <returns>Reward active cycle for all teams.</returns>
+        Task<List<RewardCycleEntity>> GetActiveAwardCycleForAllTeamsAsync();
     }
 }

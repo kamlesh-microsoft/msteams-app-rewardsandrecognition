@@ -14,13 +14,13 @@ To begin, you will need:
 
 * Application Insights
 
-* A copy of the Rewards and Recognition app GitHub [repo](https://github.com/OfficeDev/microsoft-teams-apps-rewardsandrecognition)
+* A copy of the Awardster app GitHub [repo](https://github.com/OfficeDev/microsoft-teams-apps-rewardsandrecognition)
 
   
 
 ### Step 1: Register Azure AD applications
 
-Register two Azure AD applications in your tenant's directory: one for the bot, and another for the tab app authentication.
+Register one Azure AD applications in your tenant's directory: for the bot and tab app authentication.
 
   
 
@@ -30,7 +30,7 @@ Register two Azure AD applications in your tenant's directory: one for the bot, 
 
 2. Click on "New registration", and create an Azure AD application.
 
-1.  **Name**: The name of your Teams app - if you are following the template for a default deployment, we recommend "Reward and Recognition".
+1.  **Name**: The name of your Teams app - if you are following the template for a default deployment, we recommend "Awardster".
 
 2.  **Supported account types**: Select "Accounts in any organizational directory"
 
@@ -64,32 +64,20 @@ Register two Azure AD applications in your tenant's directory: one for the bot, 
 
 6. Once the client secret is created, copy its **Value**; we will need it later.
 
-  
+   **Name**: The name of your tab app. We advise appending “Tab” to the name of this app; for example, “Reward and Recognition Tab”.
 
-7. Go back to “App registrations”, then repeat steps 2-3 to create another Azure AD application for the configuration app.
-
-1.  **Name**: The name of your tab app. We advise appending “Tab” to the name of this app; for example, “Reward and Recognition Tab”.
-
-2.  **Supported account types**: Select "Account in this organizational directory only"
-
-3. Leave the "Redirect URL" field blank for now.
-
-  
 
 At this point you have 4 unique values:
 
-  
-
-* Application (client) ID for the bot
+ 
+* Application (client) ID for the bot and tab
 
 * Client secret for the bot
 
 * Directory (tenant) ID, which is the same for both apps
 
-* Application (client) ID for tab app
 
   
-
 We recommend that you copy these values into a text file, using an application like Notepad. We will need these values later.
 
   
@@ -116,7 +104,7 @@ We recommend that you copy these values into a text file, using an application l
 
 * We recommend creating a new resource group.
 
-* The resource group location MUST be in a datacenter that supports: Application Insights; and Azure Search. For an up-to-date list, click [here](https://azure.microsoft.com/en-us/global-infrastructure/services/?products=logic-apps,cognitive-services,search,monitor), and select a region where the following services are available:
+* The resource group location MUST be in a data center that supports: Application Insights; and Azure Search. For an up-to-date list, click [here](https://azure.microsoft.com/en-us/global-infrastructure/services/?products=logic-apps,cognitive-services,search,monitor), and select a region where the following services are available:
 
 * Application Insights
 
@@ -126,7 +114,7 @@ We recommend that you copy these values into a text file, using an application l
 
 5. Enter a "Base Resource Name", which the template uses to generate names for the other resources.
 
-* The app service names `[Base Resource Name]`, must be available. For example, if you select `contosorewardandrecognition` as the base name, the names `contosorewardandrecognition` must be available (not taken); otherwise, the deployment will fail with a Conflict error.
+* The app service names `[Base Resource Name]`, must be available. For example, if you select `contosoawardster` as the base name, the names `contosoawardster` must be available (not taken); otherwise, the deployment will fail with a Conflict error.
 
 * Remember the base resource name that you selected. We will need it later.
 
@@ -147,12 +135,6 @@ We recommend that you copy these values into a text file, using an application l
 3.  **Tenant Id**: The tenant ID above
 
   
-
-4.  **Tab App Client Id**: The application (client) ID of the authentication app
-
-
-  
-
 Make sure that the values are copied as-is, with no extra spaces. The template checks that GUIDs are exactly 36 characters.
 
   
@@ -183,13 +165,15 @@ Make sure that the values are copied as-is, with no extra spaces. The template c
 
 * appDomain - This is the base domain for the Incident Reporter Bot.
 
-### Step 3: Set up authentication for the tab app
+* configurationAppUrl - This is the URL for the configuration web application.
+
+### Step 3: Set up authentication for the app
 
 1. Go back to the "App Registrations" page [here]([https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps)) 
 
-2.  On the overview page of tab app created in Step 1, copy and save the  **Application (client) ID**. You’ll need it later when updating your Teams application manifest.
+2.  On the overview page of app created in Step 1, copy and save the  **Bot(client) ID**. You’ll need it later when updating your Teams application manifest.
 
-3.  Select  **Expose an API**  under  **Manage**. Select the  **Set**  link to generate the Application ID URI in the form of  `api://{AppID}`. Insert your fully qualified domain name (with a forward slash "/" appended to the end) between the double forward slashes and the GUID. The entire ID should have the form of:  `api://fully-qualified-domain-name.com/{AppID}`
+3.  Select  **Expose an API**  under  **Manage**. Select the  **Set**  link to generate the Application ID URI in the form of  `api://{BotID}`. Insert your fully qualified domain name (with a forward slash "/" appended to the end) between the double forward slashes and the GUID. The entire ID should have the form of:  `api://fully-qualified-domain-name.com/{BotID}`
     -   ex:  `api://subdomain.example.com:6789/c6c1f32b-5e55-4997-881a-753cc1d563b7`.
 
 
@@ -208,15 +192,15 @@ Make sure that the values are copied as-is, with no extra spaces. The template c
         -   `api://subdomain.example.com:6789/c6c1f32b-5e55-4997-881a-753cc1d563b7/access_as_user`
 
 10.  In the  **Authorized client applications**  section, you identify the applications that you want to authorize to your app’s web application. Each of the following IDs needs to be entered:
-    -   `1fec8e78-bce4-4aaf-ab1b-5451cc387264`  (Teams mobile/desktop application)
-    -   `5e3ce6c0-2b1f-4285-8d4b-75ee78787346`  (Teams web application)
+   -   1fec8e78-bce4-4aaf-ab1b-5451cc387264`  (Teams mobile/desktop application)
+   -   5e3ce6c0-2b1f-4285-8d4b-75ee78787346`  (Teams web application)
 
 11.  Navigate to  **API Permissions**, and make sure to add the follow permissions:
-    -   User.Read (enabled by default)
-    -   email
-    -   offline_access
-    -   openid
-    -   profile
+   -   User.Read (enabled by default)
+   -   email
+   -   offline_access
+   -   openid
+   -   profile
 
 **Note:** The detailed guidelines for registering an application for SSO Microsoft Teams tab can be found [here]([https://docs.microsoft.com/en-us/microsoftteams/platform/tabs/how-to/authentication/auth-aad-sso](https://docs.microsoft.com/en-us/microsoftteams/platform/tabs/how-to/authentication/auth-aad-sso))
 
@@ -256,9 +240,9 @@ Create two Teams app packages: one for end-users to install personally, and one 
 
 3. Change the `<<botId>>` placeholder to your Azure AD application's ID from above. This is the same GUID that you entered in the template under "Bot Client ID".
 
-4. In the "validDomains" section, replace the `<<appDomain>>` with your Bot App Service's domain. This will be `[BaseResourceName].azurewebsites.net`. For example if you chose "contosoincidentreport" as the base name, change the placeholder to `contosorewardandrecognition.azurewebsites.net`.
+4. In the "validDomains" section, replace the `<<appDomain>>` with your Bot App Service's domain. This will be `[BaseResourceName].fdwebsites.net`. For example if you chose "contosoincidentreport" as the base name, change the placeholder to `contosorewardandrecognition.fdwebsites.net`.
 
-5. In the "webApplicationInfo" section, replace the   `<<application_GUID>>` with client ID of the tab app created in Step 3(2). Also replace `<<web_api resource>>` with following Application ID URI set in Step 3(3). This will be as follows `api://[BaseResourceName].azurewebsites.net/<<application_GUID>>`. 
+5. In the "webApplicationInfo" section, replace the   `<<application_GUID>>` with client ID of the tab app created in Step 3(2). Also replace `<<web_api resource>>` with following Application ID URI set in Step 3(3). This will be as follows `api://[BaseResourceName].fdwebsites.net/<<application_GUID>>`. 
 
 7. Create a ZIP package with the `manifest.json`,`color.png`, and `outline.png`. The two image files are the icons for your app in Teams.
 
@@ -272,7 +256,7 @@ Create two Teams app packages: one for end-users to install personally, and one 
 
 ### Step 5: Run the apps in Microsoft Teams
 
-1. If your tenant has sideloading apps enabled, you can install your app by following the instructions
+1. If your tenant has side loading apps enabled, you can install your app by following the instructions
 [here](https://docs.microsoft.com/en-us/microsoftteams/platform/concepts/apps/apps-upload#load-your-package-into-teams)
 
   2. You can also upload it to your tenant's app catalog, so that it can be available for everyone in your tenant to install. See [here](https://docs.microsoft.com/en-us/microsoftteams/tenant-apps-catalog-teams)
@@ -280,7 +264,7 @@ Create two Teams app packages: one for end-users to install personally, and one 
 * We recommend using [app permission policies](https://docs.microsoft.com/en-us/microsoftteams/teams-app-permission-policies) to restrict access to this app to the members of the experts team.
 
   
- 3. Install the app (the `rewardandrecognition.zip` package) to your team.
+ 3. Install the app (the `awardster.zip` package) to your team.
 
   
 

@@ -20,12 +20,22 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Cards
         /// <summary>
         /// Represents the image pixel height.
         /// </summary>
-        private const int PixelHeight = 80;
+        private const int PixelHeight = 85;
 
         /// <summary>
         /// Represents the image pixel width.
         /// </summary>
-        private const int PixelWidth = 110;
+        private const int PixelWidth = 115;
+
+        /// <summary>
+        /// Represents the image pixel height/width of endorse icon.
+        /// </summary>
+        private const int PixelWidthIcon = 15;
+
+        /// <summary>
+        /// Represents the image pixel height of endorse container.
+        /// </summary>
+        private const int PixelMinHeightContainer = 144;
 
         /// <summary>
         /// This method will construct endorse card with corresponding details.
@@ -46,7 +56,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Cards
                         {
                             new AdaptiveColumn
                             {
-                                Width = "50",
+                                Width = AdaptiveColumnWidth.Stretch,
                                 Items = new List<AdaptiveElement>
                                 {
                                     new AdaptiveTextBlock
@@ -61,7 +71,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Cards
                             },
                             new AdaptiveColumn
                             {
-                                Width = "100",
+                                Width = AdaptiveColumnWidth.Auto,
                                 Items = new List<AdaptiveElement>
                                 {
                                     new AdaptiveImage
@@ -145,32 +155,42 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Cards
             {
                 Body = new List<AdaptiveElement>
                 {
-                    new AdaptiveColumnSet
+                    new AdaptiveContainer()
                     {
-                        Columns = new List<AdaptiveColumn>
+                        PixelMinHeight = PixelMinHeightContainer,
+                        Items = new List<AdaptiveElement>()
                         {
-                            new AdaptiveColumn
+                            new AdaptiveColumnSet
                             {
-                                Width = AdaptiveColumnWidth.Auto,
-                                Items = new List<AdaptiveElement>
+                                Columns = new List<AdaptiveColumn>
                                 {
-                                    new AdaptiveImage
+                                    new AdaptiveColumn
                                     {
-                                        Size = AdaptiveImageSize.Medium,
-                                        Url = isEndorsementSuccess == true ? new Uri(string.Format(CultureInfo.InvariantCulture, "{0}/Content/SuccessIcon.png", applicationBasePath?.Trim('/'))) : new Uri(string.Format(CultureInfo.InvariantCulture, "{0}/Content/ErrorIcon.png", applicationBasePath?.Trim('/'))),
+                                        Width = AdaptiveColumnWidth.Auto,
+                                        Items = new List<AdaptiveElement>
+                                        {
+                                            new AdaptiveImage
+                                            {
+                                                Spacing = AdaptiveSpacing.Large,
+                                                PixelHeight = PixelWidthIcon,
+                                                PixelWidth = PixelWidthIcon,
+                                                Url = isEndorsementSuccess ? new Uri(string.Format(CultureInfo.InvariantCulture, "{0}/Content/SuccessIcon.png", applicationBasePath?.Trim('/'))) : new Uri(string.Format(CultureInfo.InvariantCulture, "{0}/Content/ErrorIcon.png", applicationBasePath?.Trim('/'))),
+                                            },
+                                        },
                                     },
-                                },
-                            },
-                            new AdaptiveColumn
-                            {
-                                Width = AdaptiveColumnWidth.Auto,
-                                Items = new List<AdaptiveElement>
-                                {
-                                    new AdaptiveTextBlock
+                                    new AdaptiveColumn
                                     {
-                                        Text = isEndorsementSuccess == true ? localizer.GetString("SuccessfulEndorseMessage", nominatedToName, awardName, endCycleDate) : localizer.GetString("AlreadyendorsedMessage", endCycleDate),
-                                        Wrap = true,
-                                        Size = AdaptiveTextSize.Default,
+                                        Width = AdaptiveColumnWidth.Stretch,
+                                        Height = AdaptiveHeight.Auto,
+                                        Items = new List<AdaptiveElement>
+                                        {
+                                            new AdaptiveTextBlock
+                                            {
+                                                Text = isEndorsementSuccess == true ? localizer.GetString("SuccessfulEndorseMessage", nominatedToName, awardName, endCycleDate) : localizer.GetString("AlreadyendorsedMessage", nominatedToName),
+                                                Wrap = true,
+                                                Size = AdaptiveTextSize.Default,
+                                            },
+                                        },
                                     },
                                 },
                             },

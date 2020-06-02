@@ -7,11 +7,13 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Cards
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
+    using System.Web;
     using AdaptiveCards;
     using Microsoft.Bot.Schema;
     using Microsoft.CodeAnalysis;
     using Microsoft.Extensions.Localization;
     using Microsoft.Teams.Apps.RewardAndRecognition.Models;
+    using Newtonsoft.Json;
 
     /// <summary>
     ///  This class process tour carousel feature to show winners.
@@ -34,11 +36,13 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Cards
         /// <param name="applicationBasePath">Application base URL.</param>
         /// <param name="winners">Award winner details.</param>
         /// <param name="localizer">The current cultures' string localizer.</param>
+        /// <param name="manifestId">Unique id of manifest.</param>
         /// <returns>The card that comprise the winner details.</returns>
-        public static IEnumerable<Attachment> GetAwardWinnerCard(string applicationBasePath, IEnumerable<AwardWinnerNotification> winners, IStringLocalizer<Strings> localizer)
+        public static IEnumerable<Attachment> GetAwardWinnerCard(string applicationBasePath, IEnumerable<AwardWinnerNotification> winners, IStringLocalizer<Strings> localizer, string manifestId)
         {
             var attachments = new List<Attachment>();
-            foreach (var winner in winners.GroupBy(rows => rows.AwardName))
+            string context = HttpUtility.UrlEncode(JsonConvert.SerializeObject(new { channelId = winners.First().TeamId }));
+            foreach (var winner in winners.GroupBy(rows => rows.AwardId))
             {
                 AdaptiveCard carouselCard = new AdaptiveCard(new AdaptiveSchemaVersion(Constants.AdaptiveCardVersion))
                 {
@@ -67,7 +71,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Cards
                         },
                         new AdaptiveTextBlock
                         {
-                            Text = winner.Key,
+                            Text = winner.OrderByDescending(row => row.NominatedOn).FirstOrDefault().AwardName,
                             Size = AdaptiveTextSize.Large,
                             Weight = AdaptiveTextWeight.Bolder,
                             Spacing = AdaptiveSpacing.Small,
@@ -79,6 +83,14 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Cards
                             Size = AdaptiveTextSize.Small,
                             Spacing = AdaptiveSpacing.Medium,
                             Wrap = true,
+                        },
+                    },
+                    Actions = new List<AdaptiveAction>
+                    {
+                        new AdaptiveOpenUrlAction
+                        {
+                            Title = localizer.GetString("ViewWinnerTabText"),
+                            Url = new System.Uri(string.Format(CultureInfo.InvariantCulture, Constants.TabDeepLink, manifestId, context)),
                         },
                     },
                 };

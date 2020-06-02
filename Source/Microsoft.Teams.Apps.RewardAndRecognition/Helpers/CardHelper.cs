@@ -18,6 +18,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Helpers
     using Microsoft.Extensions.Localization;
     using Microsoft.Extensions.Logging;
     using Microsoft.Teams.Apps.RewardAndRecognition.Cards;
+    using Microsoft.Teams.Apps.RewardAndRecognition.Models;
 
     /// <summary>
     /// Class that handles the card configuration.
@@ -201,6 +202,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Helpers
                             Height = TaskModuleHeight,
                             Width = TaskModuleWidth,
                             Title = localizer.GetString("ConfigureAdminTitle"),
+                            FallbackUrl = $"{applicationBasePath}/config-admin-page?telemetry={instrumentationKey}&teamId={teamId}&isActivityIdPresent={isActivityIdPresent}&theme={{theme}}&locale={{locale}}",
                         },
                     },
                 };
@@ -217,6 +219,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Helpers
                             Height = NominationTaskModuleHeight,
                             Width = NominationTaskModuleWidth,
                             Title = localizer.GetString("NominatePeopleTitle"),
+                            FallbackUrl = $"{applicationBasePath}/nominate-awards?telemetry={instrumentationKey}&teamId={teamId}&awardId={awardId}&theme={{theme}}&locale={{locale}}",
                         },
                     },
                 };
@@ -232,23 +235,24 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Helpers
         /// <param name="turnContext">Provides context for a turn of a bot.</param>
         /// <param name="localizer">The current cultures' string localizer.</param>
         /// <param name="logger">Instance to send logs to the application insights service.</param>
+        /// <param name="mentionType">Mention activity type.</param>
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>A task that sends notification in newly created channel and mention its members.</returns>
-        internal static async Task<Activity> GetMentionActivityAsync(IEnumerable<string> mentionToEmails, string userObjectId, string teamId, ITurnContext turnContext, IStringLocalizer<Strings> localizer, ILogger logger, CancellationToken cancellationToken)
+        internal static async Task<Activity> GetMentionActivityAsync(IEnumerable<string> mentionToEmails, string userObjectId, string teamId, ITurnContext turnContext, IStringLocalizer<Strings> localizer, ILogger logger, MentionActivityType mentionType, CancellationToken cancellationToken)
         {
             try
             {
-                var mentionText = new StringBuilder();
-                var entities = new List<Entity>();
-                var mentions = new List<Mention>();
-                var channelMembers = await TeamsInfo.GetTeamMembersAsync(turnContext, teamId, cancellationToken);
+                StringBuilder mentionText = new StringBuilder();
+                List<Entity> entities = new List<Entity>();
+                List<Mention> mentions = new List<Mention>();
+                IEnumerable<TeamsChannelAccount> channelMembers = await TeamsInfo.GetTeamMembersAsync(turnContext, teamId, cancellationToken);
 
-                var mentionToMemberDetails = channelMembers.Where(member => mentionToEmails.Contains(member.Email)).Select(member => new ChannelAccount { Id = member.Id, Name = member.Name });
-                var mentionByMemberDetails = channelMembers.Where(member => member.AadObjectId == userObjectId).Select(member => new ChannelAccount { Id = member.Id, Name = member.Name }).FirstOrDefault();
+                IEnumerable<ChannelAccount> mentionToMemberDetails = channelMembers.Where(member => mentionToEmails.Contains(member.Email)).Select(member => new ChannelAccount { Id = member.Id, Name = member.Name });
+                ChannelAccount mentionByMemberDetails = channelMembers.Where(member => member.AadObjectId == userObjectId).Select(member => new ChannelAccount { Id = member.Id, Name = member.Name }).FirstOrDefault();
 
-                foreach (var member in mentionToMemberDetails)
+                foreach (ChannelAccount member in mentionToMemberDetails)
                 {
-                    var mention = new Mention
+                    Mention mention = new Mention
                     {
                         Mentioned = new ChannelAccount()
                         {
@@ -262,7 +266,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Helpers
                     mentionText.Append(mention.Text).Append(", ");
                 }
 
-                var mentionBy = new Mention
+                Mention mentionBy = new Mention
                 {
                     Mentioned = new ChannelAccount()
                     {
@@ -271,9 +275,27 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Helpers
                     },
                     Text = $"<at>{XmlConvert.EncodeName(mentionByMemberDetails.Name)}</at>",
                 };
-                entities.Add(mentionBy);
 
-                var notificationActivity = MessageFactory.Text(localizer.GetString("MentionText", mentionText.ToString(), mentionBy.Text));
+                string text = string.Empty;
+
+                switch (mentionType)
+                {
+                    case MentionActivityType.SetAdmin:
+                        entities.Add(mentionBy);
+                        text = localizer.GetString("SetAdminMentionText", mentionText.ToString().Trim().TrimEnd(','), mentionBy.Text);
+                        break;
+                    case MentionActivityType.Nomination:
+                        entities.Add(mentionBy);
+                        text = localizer.GetString("NominationMentionText", mentionText.ToString().Trim().TrimEnd(','), mentionBy.Text);
+                        break;
+                    case MentionActivityType.Winner:
+                        text = $"{localizer.GetString("WinnerMentionText")} {mentionText.ToString().Trim().TrimEnd(',')}";
+                        break;
+                    default:
+                        break;
+                }
+
+                Activity notificationActivity = MessageFactory.Text(text);
                 notificationActivity.Entities = entities;
                 return notificationActivity;
             }

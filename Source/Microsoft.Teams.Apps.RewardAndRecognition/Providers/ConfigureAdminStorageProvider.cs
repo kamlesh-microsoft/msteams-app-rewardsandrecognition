@@ -56,7 +56,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Providers
         /// <returns><see cref="Task"/>Returns admin entity.</returns>
         public async Task<AdminEntity> GetAdminDetailAsync(string teamId)
         {
-            await this.EnsureInitializedAsync().ConfigureAwait(false);
+            await this.EnsureInitializedAsync();
             AdminEntity adminDetails;
             var query = new TableQuery<AdminEntity>().Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, teamId));
             TableContinuationToken tableContinuationToken = null;

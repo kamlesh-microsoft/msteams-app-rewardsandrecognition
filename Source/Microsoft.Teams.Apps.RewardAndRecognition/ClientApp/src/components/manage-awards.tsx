@@ -10,14 +10,14 @@ import * as microsoftTeams from "@microsoft/teams-js";
 import { createBrowserHistory } from "history";
 import CommandBar from "./manage-awards-command-bar";
 import AwardsTable from "./awards-table";
-import { getAllAwards, deleteSelectedAwards } from "../api/awards-api";
+import { getAllAwards } from "../api/awards-api";
 import AddAward from '../components/add-new-award';
 import EditAward from '../components/edit-award';
 import DeleteAward from '../components/delete-award';
 import { WithTranslation, withTranslation } from "react-i18next";
 import { navigateToErrorPage } from "../helpers/utility";
 import { IAwardData } from "../models/award";
-
+let moment = require('moment');
 
 const browserHistory = createBrowserHistory({ basename: "" });
 
@@ -161,7 +161,6 @@ class ManageAwards extends React.Component<IProps, IAwardsState> {
     *Navigate to add new award page
     */
     handleAddButtonClick = () => {
-        this.appInsights.trackEvent({ name: `Add award` }, { User: this.userObjectId });
         this.setState({ showAddAwards: true });
     }
 
@@ -169,7 +168,6 @@ class ManageAwards extends React.Component<IProps, IAwardsState> {
     *Navigate to edit award page
     */
     handleEditButtonClick = () => {
-        this.appInsights.trackEvent({ name: `Edit award` }, { User: this.userObjectId });
         let editAward = this.state.awards.find(award => award.AwardId === this.state.selectedAwards[0])
         this.setState({ showEditAwards: true, editAward: editAward });
     }
@@ -178,7 +176,6 @@ class ManageAwards extends React.Component<IProps, IAwardsState> {
     *Deletes selected awards
     */
     handleDeleteButtonClick = () => {
-        this.appInsights.trackEvent({ name: `Delete award` }, { User: this.userObjectId });
         this.setState({ showDeleteAwards: true });
     }
 
@@ -231,23 +228,26 @@ class ManageAwards extends React.Component<IProps, IAwardsState> {
                                 onDeleteButtonClick={this.handleDeleteButtonClick}
                                 onEditButtonClick={this.handleEditButtonClick}
                                 handleTableFilter={this.handleSearch}
+                                isAddEnabled={!(this.state.awards.length >= 10)}
                             />
                             <div>
-                                <AwardsTable showCheckbox={true}
-                                    awardsData={this.state.filteredAwards}
-                                    onCheckBoxChecked={this.onAwardsSelected}
-                                />
+                                {this.state.awards.length !== 0 &&
+                                    <AwardsTable showCheckbox={true}
+                                        awardsData={this.state.filteredAwards}
+                                        onCheckBoxChecked={this.onAwardsSelected}
+                                    />
+                                }
                             </div>
                             {this.state.awards.length === 0 &&
-                                <Flex gap="gap.small" >
-                                    <Flex.Item align="center">
-                                        <Layout className="manage-award-icon "
+                            <Flex gap="gap.small" >
+                                <Flex.Item align="center">
+                                <Layout className="manage-award-icon"
                                             renderMainArea={() => <Image fluid src={this.appUrl + "/content/HelpIcon.png"} />}
                                         />
                                     </Flex.Item>
-                                    <Flex.Item >
-                                        <Flex column>
-                                            <Text content={t('noAwardFoundText1')} />
+                                    <Flex.Item>
+                                        <Flex column gap="gap.small" className="header-nomination">
+                                            <Text weight="bold" content={t('noAwardFoundText1')} />
                                             <Text content={t('noAwardFoundText2')} />
                                         </Flex>
                                     </Flex.Item>
@@ -270,15 +270,17 @@ class ManageAwards extends React.Component<IProps, IAwardsState> {
                             onSuccess={this.onSuccess}
                         />
                     </div>}
-                    {(this.state.showAddAwards === false && this.state.showEditAwards === false && !this.state.showDeleteAwards) && <Flex>
-                        {this.state.message !== undefined && <Layout className="manage-award-icon"
-                            renderMainArea={() => <Image fluid src={this.appUrl + "/content/SuccessIcon.png"} />}
-                        />}
-                        <Text content={this.state.message} success />
-                        {this.state.awards.length > 0 && <Flex.Item push>
-                            <Text align="end" content={t('lastUpdatedOn', { time: new Date(this.state.awards[0].timestamp) })} />
-                        </Flex.Item>}
-                    </Flex>}
+                    {(this.state.showAddAwards === false && this.state.showEditAwards === false && !this.state.showDeleteAwards) &&
+                        <div className="award-message-margin-top">
+                            <Flex>
+                                {this.state.message !== undefined && <Layout className="manage-award-icon"
+                                    renderMainArea={() => <Image fluid src={this.appUrl + "/content/SuccessIcon.png"} />}
+                                />}
+                                <Text content={this.state.message} success />
+                                {this.state.awards.length > 0 && <Flex.Item push>
+                                    <Text align="end" content={t('lastUpdatedOn', { time: moment(new Date(this.state.awards[0].timestamp)).format("MMMM Do YYYY").toString() + " : " + new Date(this.state.awards[0].timestamp).toLocaleTimeString() })} />
+                                </Flex.Item>}
+                            </Flex></div>}
                     {this.state.showDeleteAwards && <div>
                         <DeleteAward
                             awardsData={this.state.awards}

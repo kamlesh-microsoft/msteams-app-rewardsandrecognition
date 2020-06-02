@@ -1,4 +1,4 @@
-﻿// <copyright file="RewardCycleBackgroundService.cs" company="Microsoft">
+﻿// <copyright file="NotificationBackgroundService.cs" company="Microsoft">
 // Copyright (c) Microsoft. All rights reserved.
 // </copyright>
 
@@ -13,9 +13,9 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.BackgroundService
     using Microsoft.Extensions.Logging;
 
     /// <summary>
-    /// BackgroundService class that inherits IHostedService and implements the methods related to background tasks for updating award cycle one times a day.
+    /// This class inherits IHostedService and implements the methods related to background tasks for sending nomination reminder notifications.
     /// </summary>
-    public class RewardCycleBackgroundService : IHostedService, IDisposable
+    public class NotificationBackgroundService : IHostedService, IDisposable
     {
         /// <summary>
         /// Provides a parser and scheduler for Daily cron expression.
@@ -30,12 +30,12 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.BackgroundService
         /// <summary>
         /// Instance to send logs to the Application Insights service.
         /// </summary>
-        private readonly ILogger<RewardCycleBackgroundService> logger;
+        private readonly ILogger<NotificationBackgroundService> logger;
 
         /// <summary>
-        /// Instance of reward cycle helper which helps in updating reward cycle state.
+        /// Instance of notification helper which helps in sending notifications.
         /// </summary>
-        private readonly IRewardCycleHelper rewardCycleHelper;
+        private readonly INotificationHelper notificationHelper;
 
         /// <summary>
         /// Instance of Timer for executing the service at particular interval.
@@ -53,17 +53,17 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.BackgroundService
         private bool disposed = false;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RewardCycleBackgroundService"/> class.
-        /// BackgroundService class that inherits IHostedService and implements the methods related to award cycle.
+        /// Initializes a new instance of the <see cref="NotificationBackgroundService"/> class.
+        /// BackgroundService class that inherits IHostedService and implements the methods related to notification.
         /// </summary>
         /// <param name="logger">Instance to send logs to the Application Insights service.</param>
-        /// <param name="rewardCycleHelper">Helper to start/stop a reward cycle.</param>
-        public RewardCycleBackgroundService(ILogger<RewardCycleBackgroundService> logger, IRewardCycleHelper rewardCycleHelper)
+        /// <param name="notificationHelper">Helper to send notification.</param>
+        public NotificationBackgroundService(ILogger<NotificationBackgroundService> logger, INotificationHelper notificationHelper)
         {
             this.logger = logger;
-            this.expression = CronExpression.Parse("0 */4 * * *"); // scheduled to run every 4 hrs.
+            this.expression = CronExpression.Parse("0 12 * * *"); // schedule to run at 12 AM everyday
             this.timeZoneInfo = TimeZoneInfo.Utc;
-            this.rewardCycleHelper = rewardCycleHelper;
+            this.notificationHelper = notificationHelper;
         }
 
         /// <summary>
@@ -75,12 +75,12 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.BackgroundService
         {
             try
             {
-                this.logger.LogInformation("RewardCycle Hosted Service is running.");
-                await this.ScheduleCycleAsync();
+                this.logger.LogInformation("Notification Hosted Service is running.");
+                await this.ScheduleNotificationDailyAsync();
             }
             catch (Exception ex)
             {
-                this.logger.LogError(ex, $"Error while running the background service to send update award cycle): {ex.Message}", SeverityLevel.Error);
+                this.logger.LogError(ex, $"Error while running the background service to send nomination reminder notification): {ex.Message}", SeverityLevel.Error);
                 throw;
             }
         }
@@ -92,7 +92,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.BackgroundService
         /// <returns>A task instance.</returns>
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-            this.logger.LogInformation("RewardCycle Hosted Service is stopping.");
+            this.logger.LogInformation("Notification Hosted Service is stopping.");
             await Task.CompletedTask;
         }
 
@@ -125,42 +125,42 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.BackgroundService
         }
 
         /// <summary>
-        /// Set the timer and enqueue send notification task if timer matched as per Cron expression.
+        /// Set the timer and send notification task if timer matched as per Cron expression.
         /// </summary>
         /// <returns>A task that Enqueue sends notification task.</returns>
-        private async Task ScheduleCycleAsync()
+        private async Task ScheduleNotificationDailyAsync()
         {
             var count = Interlocked.Increment(ref this.executionCount);
-            this.logger.LogInformation("RewardCycle Hosted Service is working. Count: {Count}", count);
+            this.logger.LogInformation("Reminder notification Hosted Service is working. Count: {Count}", count);
 
             var next = this.expression.GetNextOccurrence(DateTimeOffset.UtcNow, this.timeZoneInfo);
             if (next.HasValue)
             {
                 var delay = next.Value - DateTimeOffset.UtcNow;
                 this.timer = new System.Timers.Timer(delay.TotalMilliseconds);
-                #pragma warning disable AvoidAsyncVoid // Avoid async void
+#pragma warning disable AvoidAsyncVoid // Avoid async void
                 this.timer.Elapsed += async (sender, args) =>
-                #pragma warning restore AvoidAsyncVoid // Avoid async void
+#pragma warning restore AvoidAsyncVoid // Avoid async void
                 {
                     this.logger.LogInformation($"Timer matched to send notification at timer value : {this.timer}");
                     this.timer.Stop();  // reset timer
 
-                    await this.UpdateCycleAsync();
-                    await this.ScheduleCycleAsync();
+                    await this.SendNotificationReminderAsync();
+                    await this.ScheduleNotificationDailyAsync();
                 };
                 this.timer.Start();
             }
         }
 
         /// <summary>
-        /// Method invokes to check and update award cycle state.
+        /// Method invokes to send notification.
         /// </summary>
         /// <returns>A task that sends notification in channel for group activity.</returns>
-        private async Task UpdateCycleAsync()
+        private async Task SendNotificationReminderAsync()
         {
-            this.logger.LogInformation("Check and update reward cycle");
-            await this.rewardCycleHelper.CheckOrUpdateCycleStatusAsync();
-            this.logger.LogInformation("updated reward cycle");
+            this.logger.LogInformation("Check and send nomination reminder notification.");
+            await this.notificationHelper.SendNominationReminderNotificationAsync();
+            this.logger.LogInformation("Nomination reminder notification sent successfully.");
         }
     }
 }

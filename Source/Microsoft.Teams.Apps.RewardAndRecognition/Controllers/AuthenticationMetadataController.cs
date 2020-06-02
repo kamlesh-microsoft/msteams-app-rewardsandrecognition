@@ -17,7 +17,14 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Controllers
     [Route("api/authenticationMetadata")]
     public class AuthenticationMetadataController : ControllerBase
     {
+        /// <summary>
+        ///  Tenant id of the application.
+        /// </summary>
         private readonly string tenantId;
+
+        /// <summary>
+        /// Client id of the application.
+        /// </summary>
         private readonly string clientId;
 
         /// <summary>
@@ -60,6 +67,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Controllers
 
             var consentUrlPrefix = $"https://login.microsoftonline.com/{this.tenantId}/oauth2/v2.0/authorize?";
             var consentUrlString = consentUrlPrefix + string.Join('&', consentUrlComponentList);
+
             return consentUrlString;
         }
     }

@@ -20,7 +20,14 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Controllers
     [Authorize]
     public class RewardCycleController : BaseRewardAndRecognitionController
     {
+        /// <summary>
+        /// Instance to send logs to the Application Insights service.
+        /// </summary>
         private readonly ILogger<RewardCycleController> logger;
+
+        /// <summary>
+        /// Provider for fetching information about active award cycle details from storage table.
+        /// </summary>
         private readonly IRewardCycleStorageProvider storageProvider;
 
         /// <summary>

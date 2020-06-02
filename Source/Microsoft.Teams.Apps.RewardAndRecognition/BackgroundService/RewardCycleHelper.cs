@@ -13,7 +13,14 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.BackgroundService
     /// </summary>
     public class RewardCycleHelper : IRewardCycleHelper
     {
+        /// <summary>
+        /// Helper for storing reward cycle details to azure table storage.
+        /// </summary>
         private readonly IRewardCycleStorageProvider rewardCycleStorageProvider;
+
+        /// <summary>
+        /// Sends logs to the Application Insights service.
+        /// </summary>
         private readonly ILogger<RewardCycleHelper> logger;
 
         /// <summary>

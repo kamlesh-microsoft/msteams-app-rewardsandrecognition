@@ -2,25 +2,25 @@
   "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.5/MicrosoftTeams.schema.json",
   "manifestVersion": "1.5",
   "version": "1.0.0",
-  "id": "",
-  "packageName": "",
+  "id": "d3584887-d29c-4bfa-a14c-5066ae7c010a",
+  "packageName": "com.microsoft.teams.apptemplates.awardster",
   "developer": {
-    "name": "",
-    "websiteUrl": "",
-    "privacyUrl": "",
-    "termsOfUseUrl": ""
+    "name": "<<Developer name>>",
+    "websiteUrl": "<website url>",
+    "privacyUrl": "<privacy url>",
+    "termsOfUseUrl": "<terms of use url>"
   },
   "icons": {
     "color": "color.png",
     "outline": "outline.png"
   },
   "name": {
-    "short": "Rewards and Recognition.",
+    "short": "Awardster",
     "full": "Teams App Template Base"
   },
   "description": {
-    "short": "Rewards and recognition.",
-    "full": "Rewards and recognition will be useful for monthly and quarterly rewards and recognition process in most workplaces. Rewards and recognition application gives an opportunity to ​Create awards ​, Nominate/endorse team members ​Transparency which fosters a culture of healthy competition among the coworkers."
+    "short": "Awardster provides an easy and intuitive method to reward employees.",
+    "full": "Awardster provides an easy way for you to conduct your monthly, quarterly rewards and recognition process. Now you can easily nominate your colleague for designated awards, appreciate them for a job well done and celebrate success of your team anytime and from anywhere."
   },
   "accentColor": "#64A2CC",
   "bots": [
@@ -35,7 +35,7 @@
   ],
   "configurableTabs": [
     {
-      "configurationUrl": "<appbaseurl>/configTab",
+      "configurationUrl": "<appbaseurl>/config-tab",
       "canUpdateConfiguration": true,
       "scopes": [
         "team"
@@ -44,13 +44,13 @@
   ],
   "composeExtensions": [
     {
-      "botId": "",
+      "botId": "<<botId>>",
       "canUpdateConfiguration": false,
       "commands": [
         {
           "id": "Nominate",
-          "title": "Members",
-          "description": "Search nominated results",
+          "title": "Nominations",
+          "description": "Search nominations",
           "parameters": [
             {
               "name": "searchText",
@@ -67,31 +67,24 @@
           "id": "Nominate awards",
           "type": "action",
           "title": "Nominate",
-          "description": "To nominate a member",
+          "description": "Nominate an award for a team member",
           "initialRun": true,
           "fetchTask": true,
           "context": [
             "compose"
-          ],
-          "parameters": [
-            {
-              "name": "yourResponses",
-              "title": "yourResponses",
-              "description": "Add a qna pair"
-            }
           ]
         }
       ]
     }
   ],
   "permissions": [
-    "identity",
     "messageTeamMembers"
   ],
   "validDomains": [
+    "<<appDomain>>"
   ],
   "webApplicationInfo": {
-    "id": "",
-    "resource": ""
+    "id": "<Azure aad client id>",
+    "resource": "<ApplicationIdURI>"
   }
 }

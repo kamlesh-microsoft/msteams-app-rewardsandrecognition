@@ -90,8 +90,9 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Providers
         /// Delete award details data in Microsoft Azure Table storage.
         /// </summary>
         /// <param name="awardIds">Holds award Id data.</param>
+        /// <param name="teamId">Holds team Id.</param>
         /// <returns>A task that represents award entity data is saved or updated.</returns>
-        public async Task<bool> DeleteAwardsAsync(IEnumerable<string> awardIds)
+        public async Task<bool> DeleteAwardsAsync(IEnumerable<string> awardIds, string teamId)
         {
             if (awardIds == null)
             {
@@ -99,15 +100,13 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Providers
             }
 
             await this.EnsureInitializedAsync();
-            AwardEntity entity;
 
             foreach (var awardId in awardIds)
             {
-                string awardIdCondition = TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, awardId);
-                TableQuery<AwardEntity> query = new TableQuery<AwardEntity>().Where(awardIdCondition);
-                var queryResult = await this.CloudTable.ExecuteQuerySegmentedAsync(query, null);
-                entity = queryResult?.Results[0];
-                TableOperation deleteOperation = TableOperation.Delete(entity);
+                var operation = TableOperation.Retrieve<AwardEntity>(teamId, awardId);
+                var data = await this.CloudTable.ExecuteAsync(operation);
+                var award = data.Result as AwardEntity;
+                TableOperation deleteOperation = TableOperation.Delete(award);
                 var result = await this.CloudTable.ExecuteAsync(deleteOperation);
             }
 

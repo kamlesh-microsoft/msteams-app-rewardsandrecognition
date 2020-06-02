@@ -55,6 +55,10 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Authentication
                 });
         }
 
+        /// <summary>
+        /// Validates authentication configuration settings provided in appsettings.
+        /// </summary>
+        /// <param name="configuration">Application settings.</param>
         private static void ValidateAuthenticationConfigurationSettings(IConfiguration configuration)
         {
             var clientId = configuration[AuthenticationServiceCollectionExtensions.ClientIdConfigurationSettingsKey];
@@ -82,6 +86,12 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Authentication
             }
         }
 
+        /// <summary>
+        /// Get application settings for given key.
+        /// </summary>
+        /// <param name="configuration">Application settings.</param>
+        /// <param name="configurationSettingsKey">Settings key.</param>
+        /// <returns>Returns value associated with the key provided.</returns>
         private static IEnumerable<string> GetSettings(IConfiguration configuration, string configurationSettingsKey)
         {
             var configurationSettingsValue = configuration[configurationSettingsKey];
@@ -96,6 +106,11 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Authentication
             return settings;
         }
 
+        /// <summary>
+        /// Get valid audiences from app settings.
+        /// </summary>
+        /// <param name="configuration">Application settings.</param>
+        /// <returns>Returns  valid audiences from app settings</returns>
         private static IEnumerable<string> GetValidAudiences(IConfiguration configuration)
         {
             var clientId = configuration[AuthenticationServiceCollectionExtensions.ClientIdConfigurationSettingsKey];
@@ -107,6 +122,11 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Authentication
             return validAudiences;
         }
 
+        /// <summary>
+        /// Get valid issuers from app settings.
+        /// </summary>
+        /// <param name="configuration">Application settings.</param>
+        /// <returns>Returns  valid issuers from app settings</returns>
         private static IEnumerable<string> GetValidIssuers(IConfiguration configuration)
         {
             var tenantId = configuration[AuthenticationServiceCollectionExtensions.TenantIdConfigurationSettingsKey];
@@ -121,6 +141,13 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Authentication
             return validIssuers;
         }
 
+        /// <summary>
+        /// Validates audience.
+        /// </summary>
+        /// <param name="tokenAudiences">Valid audience token.</param>
+        /// <param name="securityToken">Valid security token.</param>
+        /// <param name="validationParameters">Valid audiences.</param>
+        /// <returns>Returns true for valid audience, else false.</returns>
         private static bool AudienceValidator(
             IEnumerable<string> tokenAudiences,
             SecurityToken securityToken,

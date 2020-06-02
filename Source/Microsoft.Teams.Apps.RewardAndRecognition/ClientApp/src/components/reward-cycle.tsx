@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // </copyright>
 
-import { Button, Checkbox, Divider, Flex, Input, RadioGroup, Text, Loader } from "@fluentui/react-northstar";
+import { Button, Checkbox, Flex, Input, RadioGroup, Text, Loader, Icon } from "@fluentui/react-northstar";
 import * as microsoftTeams from "@microsoft/teams-js";
 import { DatePicker } from 'office-ui-fabric-react/lib/DatePicker';
 import { Fabric, Customizer } from 'office-ui-fabric-react/lib';
@@ -21,6 +21,7 @@ import Constants from "../constants/constants";
 import { DarkCustomizations } from "../helpers/theme/DarkCustomizations";
 import { DefaultCustomizations } from "../helpers/theme/DefaultCustomizations";
 let moment = require('moment');
+
 initializeIcons();
 
 const browserHistory = createBrowserHistory({ basename: "" });
@@ -66,12 +67,12 @@ const RewardCycle: React.FC<IProps> = props => {
     let appInsights = getApplicationInsightsInstance(telemetry, browserHistory);
     let userObjectId: string | undefined;
     let userEmail: string | undefined;
-    
     const { t } = useTranslation();
     const [startDate, setStartDate] = useState<Date | null | undefined>(null);
     const [endDate, setEndDate] = useState<Date | null | undefined>(null);
-    const [minEndDate, setMinEndDate] = useState<Date>(new Date(moment().add(7, 'd').format()));
+    const [minEndDate, setMinEndDate] = useState<Date>(new Date(moment().add(Constants.minimumCycleDays, 'd').format()));
     const [calendarDate, setCalendarDate] = useState<Date | null | undefined>(null);
+    const [summary, setSummary] = useState<string>('');
     const [rewardCycleState, setRewardCycleState] =
         useState<IRewardCycleState>({ selectedValue: Occurrence.None, noOfOccurence: '', isReccurringChecked: false, error: '' });
     const [cycleState, setCycleState] =
@@ -90,14 +91,11 @@ const RewardCycle: React.FC<IProps> = props => {
             cycleStatus: undefined,
             teamId: '',
         });
-
     const [loader, setLoader] = useState(true);
     const [submitLoading, setSubmitLoading] = useState(false);
     const [datePickerTheme, setDatePickerTheme] = useState(DefaultCustomizations);
-
     useEffect(() => {
         microsoftTeams.initialize();
-
         microsoftTeams.getContext((context) => {
             userObjectId = context.userObjectId;
             userEmail = context.upn;
@@ -106,11 +104,9 @@ const RewardCycle: React.FC<IProps> = props => {
             else if (themeContext === Constants.contrast) { setDatePickerTheme(DarkCustomizations) }
             else { setDatePickerTheme(DefaultCustomizations) }
         });
-
         const fetchData = async () => {
             appInsights.trackTrace({ message: `'getRewardCycle' - Initiated request`, properties: { User: userObjectId }, severityLevel: SeverityLevel.Information });
             let response = await getRewardCycle(props.teamId, true)
-
             if (response.status === 200 && response.data) {
                 let rewardcycle = response.data;
                 appInsights.trackTrace({ message: `'getRewardCycle' - Request success`, properties: { User: userObjectId }, severityLevel: SeverityLevel.Information });
@@ -129,16 +125,28 @@ const RewardCycle: React.FC<IProps> = props => {
                     cycleStatus: rewardcycle.rewardCycleState,
                     teamId: props.teamId
                 });
-
                 if (rewardcycle.rewardCycleStartDate) {
                     setStartDate(new Date(rewardcycle.rewardCycleStartDate));
-                    setMinEndDate(new Date(moment(rewardcycle.rewardCycleStartDate).add(7, 'd').format()));
+                    setMinEndDate(new Date(moment(rewardcycle.rewardCycleStartDate).add(Constants.minimumCycleDays, 'd').format()));
                 }
                 if (rewardcycle.rewardCycleEndDate) { setEndDate(new Date(rewardcycle.rewardCycleEndDate)); }
                 if (rewardcycle.rangeOfOccurrenceEndDate) {
                     setCalendarDate(new Date(rewardcycle.rangeOfOccurrenceEndDate));
                 }
-                setRewardCycleState({ isReccurringChecked: rewardcycle.isRecurring === 1 ? true : false, noOfOccurence: rewardcycle.numberOfOccurrences !== 0 ? rewardcycle.numberOfOccurrences : undefined, selectedValue: rewardcycle.rangeOfOccurrence!, error: '' });
+                setRewardCycleState({
+                    isReccurringChecked: rewardcycle.isRecurring === 1 ? true : false,
+                    noOfOccurence: rewardcycle.numberOfOccurrences !== 0 ? rewardcycle.numberOfOccurrences : undefined,
+                    selectedValue: rewardcycle.rangeOfOccurrence!,
+                    error: ''
+                });
+                generateCycleSummary(
+                    rewardcycle.rewardCycleStartDate,
+                    rewardcycle.rewardCycleEndDate,
+                    rewardcycle.isRecurring === 1 ? true : false,
+                    rewardcycle.rangeOfOccurrence,
+                    rewardcycle.numberOfOccurrences,
+                    rewardcycle.rangeOfOccurrenceEndDate
+                );
             }
             else {
                 appInsights.trackTrace({ message: `'getRewardCycle' - Request failed`, properties: { User: userObjectId }, severityLevel: SeverityLevel.Information });
@@ -154,7 +162,8 @@ const RewardCycle: React.FC<IProps> = props => {
      */
     const onSelectStartDate = (date: Date | null | undefined): void => {
         setStartDate(date);
-        setMinEndDate(new Date(moment(date).add(7, 'd').format()));
+        setMinEndDate(new Date(moment(date).add(Constants.minimumCycleDays, 'd').format()));
+        generateCycleSummary(date, endDate, rewardCycleState.isReccurringChecked, rewardCycleState.selectedValue, parseInt(rewardCycleState.noOfOccurence!), calendarDate);
     };
 
     /**
@@ -163,14 +172,15 @@ const RewardCycle: React.FC<IProps> = props => {
      */
     const onSelectEndDate = (date: Date | null | undefined): void => {
         setEndDate(date);
+        generateCycleSummary(startDate, date, rewardCycleState.isReccurringChecked, rewardCycleState.selectedValue, parseInt(rewardCycleState.noOfOccurence!), calendarDate);
     };
-
     /**
      * Handle change event for end by date picker.
      * @param date | end by date.
      */
     const onSelectCalendarDate = (date: Date | null | undefined): void => {
         setCalendarDate(date);
+        generateCycleSummary(startDate, endDate, rewardCycleState.isReccurringChecked, rewardCycleState.selectedValue, parseInt(rewardCycleState.noOfOccurence!), date);
     };
 
     /**
@@ -180,7 +190,7 @@ const RewardCycle: React.FC<IProps> = props => {
     const handleInputChange = (event: any): void => {
         let p = event.target;
         setRewardCycleState({ ...rewardCycleState, [p.name]: p.value })
-
+        generateCycleSummary(startDate, endDate, rewardCycleState.isReccurringChecked, rewardCycleState.selectedValue, parseInt(p.value), calendarDate);
     }
 
     /**
@@ -190,6 +200,7 @@ const RewardCycle: React.FC<IProps> = props => {
     const handleCheckBoxChange = (isChecked: boolean): void => {
         setRewardCycleState({ isReccurringChecked: !isChecked, selectedValue: Occurrence.None, noOfOccurence: '', error: rewardCycleState.error })
         setCalendarDate(null);
+        generateCycleSummary(startDate, endDate, !isChecked, rewardCycleState.selectedValue, parseInt(rewardCycleState.noOfOccurence!), calendarDate);
     }
 
     /**
@@ -198,49 +209,44 @@ const RewardCycle: React.FC<IProps> = props => {
      * @param end | cycle end date.
      */
     const onSetCycle = async (start: Date | null | undefined, end: Date | null | undefined): Promise<void> => {
-
         if (!(start && end)) {
             setRewardCycleState({ ...rewardCycleState, error: t('requiredDatesError') });
             return;
         }
-
+        if (moment(end).diff(moment(start), 'd') < Constants.minimumCycleDays) {
+            setRewardCycleState({ ...rewardCycleState, error: t('minimumRewardCycleValidationMessage', { day: Constants.minimumCycleDays }) });
+            return;
+        }
         if (rewardCycleState.selectedValue === Occurrence.EndAfter) {
             if (parseInt(rewardCycleState.noOfOccurence!) <= 0) {
                 setRewardCycleState({ ...rewardCycleState, error: t('noOfOccurrenceError') });
                 return;
             }
-
             if (!rewardCycleState.noOfOccurence || rewardCycleState.noOfOccurence === '') {
                 setRewardCycleState({ ...rewardCycleState, error: t('noOfOccurrenceError') });
                 return;
             }
         }
-
         let startCycle = moment(start)
             .set('hour', moment().hour())
             .set('minute', moment().minute())
             .set('second', moment().second());
-
         let endCycle = moment(end)
             .set('hour', moment().hour())
             .set('minute', moment().minute())
             .set('second', moment().second());
-
         let endByDate = undefined;
         if (rewardCycleState.selectedValue === Occurrence.EndBy) {
             if (!calendarDate || calendarDate === null) {
                 setRewardCycleState({ ...rewardCycleState, error: t('requiredEndByDate') });
                 return;
             }
-
             endByDate = moment.utc(moment(calendarDate)
                 .set('hour', moment().hour())
                 .set('minute', moment().minute())
                 .set('second', moment().second()));
-
         }
         setSubmitLoading(true);
-
         let rewardCycleDetail: RewardCycleDetail = {
             RewardCycleStartDate: moment.utc(startCycle),
             RewardCycleEndDate: moment.utc(endCycle),
@@ -257,11 +263,11 @@ const RewardCycle: React.FC<IProps> = props => {
             CreatedOn: cycleState.createdOn,
             ResultPublishedOn: null,
         };
-
         appInsights.trackTrace({ message: `'setRewardCycle' - Initiated request`, properties: { User: userObjectId }, severityLevel: SeverityLevel.Information });
         let response = await setRewardCycle(rewardCycleDetail);
         if (response.status === 200 && response.data) {
             appInsights.trackTrace({ message: `'setRewardCycle' - Request success`, properties: { User: userObjectId }, severityLevel: SeverityLevel.Information });
+            appInsights.trackEvent({ name: `Set reward cycle` }, { User: userObjectId, Team: props.teamId! });
             let toBot = {
                 Command: Constants.NominateAwardsCommand,
                 RewardCycleStartDate: rewardCycleDetail.RewardCycleStartDate,
@@ -275,8 +281,8 @@ const RewardCycle: React.FC<IProps> = props => {
         else {
             appInsights.trackTrace({ message: `'setRewardCycle' - Request failed`, properties: { User: userObjectId }, severityLevel: SeverityLevel.Information });
             setRewardCycleState({ ...rewardCycleState, error: t('errorText') });
+            setSubmitLoading(false);
         }
-        setSubmitLoading(false);
     };
 
     /**
@@ -287,6 +293,7 @@ const RewardCycle: React.FC<IProps> = props => {
     const handleChange = (e: any, props: any) => {
         setRewardCycleState({ noOfOccurence: '', isReccurringChecked: rewardCycleState.isReccurringChecked, selectedValue: props.value, error: '' });
         setCalendarDate(null);
+        generateCycleSummary(startDate, endDate, rewardCycleState.isReccurringChecked, props.value, parseInt(rewardCycleState.noOfOccurence!), null);
     }
 
     /**
@@ -300,9 +307,26 @@ const RewardCycle: React.FC<IProps> = props => {
                 value: Occurrence.None,
             },
             {
+                key: 'endafter',
+                label: (
+                    <Flex vAlign="center" gap="gap.small" className="margin-small-top">
+                        <Text content={t('endAfter')} />
+                        <Input type="number"
+                            min={1}
+                            name="noOfOccurence"
+                            value={rewardCycleState.noOfOccurence!}
+                            onChange={handleInputChange}
+                            defaultValue={undefined}
+                        />
+                        <Text content={t('occurrenceText')} />
+                    </Flex>
+                ),
+                value: Occurrence.EndAfter,
+            },
+            {
                 key: 'endby',
                 label: (
-                    <div style={{ marginTop: "0.5rem" }}>
+                    <Flex vAlign="center" gap="gap.small" className="margin-small-top" >
                         <Text content={t('endBy')} />
                         <Fabric>
                             <Customizer {...datePickerTheme}>
@@ -317,32 +341,38 @@ const RewardCycle: React.FC<IProps> = props => {
                                 />
                             </Customizer>
                         </Fabric>
-                    </div>
-                ),
-                value: Occurrence.EndBy,
-            },
-            {
-                key: 'endafter',
-                label: (
-                    <Flex column>
-                        <Text content={t('endAfter')} />
-                        <Input type="number"
-                            min={1}
-                            name="noOfOccurence"
-                            value={rewardCycleState.noOfOccurence!}
-                            onChange={handleInputChange}
-                            defaultValue={undefined}
-                        />
                     </Flex>
                 ),
-                value: Occurrence.EndAfter,
+                value: Occurrence.EndBy,
             }
         ];
     }
 
+    const generateCycleSummary = (startDate: Date | null | undefined, endDate: Date | null | undefined, isRecurring: boolean, selectedValue: number | undefined, occurenceNumber: number | undefined, endOnDate: Date | null | undefined) => {
+        let days;
+        if (startDate && endDate) {
+            days = moment(endDate).diff(moment(startDate), 'd');
+            if (!isRecurring) {
+                setSummary(t('summaryNoRecurrence', { number: days }));
+            }
+            else {
+                if (selectedValue === Occurrence.None) {
+                    setSummary(t('summaryNoEnd', { number: days, startCycle: moment.utc(startDate).local().format("MMMM Do YYYY") }));
+                }
+                else if (selectedValue === Occurrence.EndAfter && occurenceNumber) {
+                    setSummary(t('summaryEndAfter', { number: days, startCycle: moment.utc(startDate).local().format("MMMM Do YYYY"), endAfter: occurenceNumber }));
+                }
+                else if (selectedValue === Occurrence.EndBy && endOnDate) {
+                    setSummary(t('summaryEndOn', { number: days, startCycle: moment.utc(startDate).local().format("MMMM Do YYYY"), endOn: moment.utc(endOnDate).local().format("MMMM Do YYYY") }));
+                }
+                else {
+                    setSummary('');
+                }
+            }
+        }
+    }
 
     return (
-
         <div>
             {loader ?
                 <div className="tab-container">
@@ -352,67 +382,81 @@ const RewardCycle: React.FC<IProps> = props => {
                 <div>
                     <div className="tab-container">
                         {rewardCycleState.error && <Flex hAlign="center"><Text content={rewardCycleState.error} error /></Flex>}
-                        <Flex gap="gap.small">
-                            <Flex.Item size="size.half">
+                        <Flex gap="gap.small" className="header-nomination">
+                            <Flex.Item className="margin-large-right">
                                 <div>
-                                    <Fabric>
-                                        <Customizer {...datePickerTheme}>
-                                            <DatePicker
-                                                className={controlClass.control}
-                                                label={t('startDate')}
-                                                isRequired={true}
-                                                allowTextInput={true}
-                                                showMonthPickerAsOverlay={true}
-                                                minDate={new Date()}
-                                                isMonthPickerVisible={true}
-                                                value={startDate!}
-                                                onSelectDate={onSelectStartDate}
-                                            />
-                                        </Customizer>
-                                    </Fabric>
+                                    <Flex gap="gap.small">
+                                        <Text content={t('startDate')} /><Text content="*" className="requiredfield" error size="medium" />
+                                        <Icon name="info" outline title={t('informationMessageStartDate')} />
+                                    </Flex>
+                                    <Flex className="margin-small-top">
+                                        <Fabric>
+                                            <Customizer {...datePickerTheme}>
+                                                <DatePicker
+                                                    className={controlClass.control}
+                                                    allowTextInput={true}
+                                                    showMonthPickerAsOverlay={true}
+                                                    minDate={new Date()}
+                                                    isMonthPickerVisible={true}
+                                                    value={startDate!}
+                                                    onSelectDate={onSelectStartDate}
+                                                />
+                                            </Customizer>
+                                        </Fabric>
+                                    </Flex>
                                 </div>
                             </Flex.Item>
-                            <Flex.Item size="size.half">
+                            <Flex.Item className="margin-large-right">
                                 <div>
-                                    <Fabric>
-                                        <Customizer {...datePickerTheme}>
-                                            <DatePicker
-                                                className={controlClass.control}
-                                                label={t('endDate')}
-                                                isRequired={true}
-                                                allowTextInput={true}
-                                                minDate={minEndDate}
-                                                isMonthPickerVisible={true}
-                                                showMonthPickerAsOverlay={true}
-                                                value={endDate!}
-                                                onSelectDate={onSelectEndDate}
-                                            />
-                                        </Customizer>
-                                    </Fabric>
+                                    <Flex gap="gap.small">
+                                        <Text content={t('endDate')} /><Text content="*" className="requiredfield" error size="medium" />
+                                        <Icon name="info" outline title={t('informationMessageEndDate')} />
+                                    </Flex>
+                                    <Flex className="margin-small-top">
+                                        <Fabric >
+                                            <Customizer {...datePickerTheme}>
+                                                <DatePicker
+                                                    className={controlClass.control}
+                                                    allowTextInput={true}
+                                                    minDate={minEndDate}
+                                                    isMonthPickerVisible={true}
+                                                    showMonthPickerAsOverlay={true}
+                                                    value={endDate!}
+                                                    onSelectDate={onSelectEndDate}
+                                                />
+                                            </Customizer>
+                                        </Fabric>
+                                    </Flex>
                                 </div>
                             </Flex.Item>
-                        </Flex>
-                        <Divider />
-                        <Flex>
-                            <Text weight="semibold" content="Recurring" />
-                            <Flex.Item push>
-                                <Checkbox toggle
-                                    checked={rewardCycleState.isReccurringChecked}
-                                    onChange={() => handleCheckBoxChange(rewardCycleState.isReccurringChecked)}
-                                />
+                            <Flex.Item >
+                                <Flex column gap="gap.small">
+                                    <div>
+                                        <Text content={t('recurring')} />&nbsp;
+                                        <Icon name="info" outline title={t('informationMessageRecurrence')} />
+                                    </div>
+                                    <Checkbox toggle
+                                        checked={rewardCycleState.isReccurringChecked}
+                                        onChange={() => handleCheckBoxChange(rewardCycleState.isReccurringChecked)}
+                                    />
+                                </Flex>
                             </Flex.Item>
                         </Flex>
-                        <Divider styles={{ marginBottom: "1rem" }} />
                         {rewardCycleState.isReccurringChecked && <Flex column gap="gap.small">
-                            <div>
+                            <div className="set-cycle-margin-top">
                                 <Text content={t('rangeOfOccurences')} />
-                                <RadioGroup vertical
+                                <RadioGroup vertical className="margin-medium-top"
                                     defaultCheckedValue={rewardCycleState.selectedValue}
                                     items={getItems()}
                                     onCheckedValueChange={handleChange}
                                 />
                             </div>
                         </Flex>}
+                        {(startDate && endDate) &&
+                            <Flex column className="set-cycle-summary-margin-top">
+                            <Text weight="bold" content={t('rewardCycleSummaryTitle')} />
+                                <Text content={summary} />
+                            </Flex>}
                     </div>
                     <div className="tab-footer">
                         <Flex hAlign="end">

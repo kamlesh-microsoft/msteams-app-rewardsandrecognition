@@ -31,8 +31,9 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Providers
         /// Delete award details data in Microsoft Azure Table storage.
         /// </summary>
         /// <param name="awardIds">Holds award Id data.</param>
+        /// <param name="teamId">Holds team Id.</param>
         /// <returns>A task that represents award entity data is saved or updated.</returns>
-        Task<bool> DeleteAwardsAsync(IEnumerable<string> awardIds);
+        Task<bool> DeleteAwardsAsync(IEnumerable<string> awardIds, string teamId);
 
         /// <summary>
         /// This method is used to fetch award details for a given team Id and awardId.

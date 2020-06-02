@@ -35,7 +35,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Cards
                         {
                             new AdaptiveColumn
                             {
-                                Width = "1",
+                                Width = AdaptiveColumnWidth.Auto,
                                 Items = new List<AdaptiveElement>
                                 {
                                     new AdaptiveImage
@@ -47,7 +47,7 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Cards
                             },
                             new AdaptiveColumn
                             {
-                                Width = "5",
+                                Width = AdaptiveColumnWidth.Stretch,
                                 Items = new List<AdaptiveElement>
                                 {
                                     new AdaptiveTextBlock

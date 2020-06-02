@@ -19,7 +19,7 @@ const ApprovedAwardTable: React.FunctionComponent<IApprovedAwardTableProps> = pr
         let winnerCount = props.awardWinner.filter(a => a.AwardId === value.AwardId).length;
         return (
             <Flex column padding="padding.medium">
-                <Text weight="semibold" content={value.AwardName} />
+                <Text weight="semibold" content={value.AwardName} className="word-break" />
                 <Text weight="bold" content={winnerCount > 1 ? winnerCount + " " + t('winnersCountText') : winnerCount + " " + t('winnerCountText')} />
             </Flex>
         )

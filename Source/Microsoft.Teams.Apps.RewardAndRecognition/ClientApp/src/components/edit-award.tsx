@@ -81,11 +81,10 @@ class EditAward extends React.Component<IAwardProps, IEditAwardState> {
     onUpdateButtonClick = async (t: any) => {
         if (this.checkIfSubmitAllowed(t)) {
             this.setState({ isSubmitLoading: true });
-            this.appInsights.trackEvent({ name: `Edit award` }, { User: this.userObjectId });
             let awardDetail: AwardDetails = {
                 AwardId: this.props.award.AwardId,
-                AwardName: this.state.awardName,
-                AwardDescription: this.state.awardDescription,
+                AwardName: this.state.awardName.trim(),
+                AwardDescription: this.state.awardDescription.trim(),
                 AwardLink: this.state.awardImageLink,
                 TeamId: this.props.teamId,
                 CreatedBy: this.state.createdBy,
@@ -96,6 +95,7 @@ class EditAward extends React.Component<IAwardProps, IEditAwardState> {
             let response = await postAward(awardDetail);
             if (response.status === 200 && response.data) {
                 this.appInsights.trackTrace({ message: `'editAward' - Request success`, properties: { User: this.userObjectId }, severityLevel: SeverityLevel.Information });
+                this.appInsights.trackEvent({ name: `Edit award` }, { User: this.userObjectId, Team: this.props.teamId! });
                 this.props.onSuccess("edit");
             }
             else {
@@ -146,7 +146,7 @@ class EditAward extends React.Component<IAwardProps, IEditAwardState> {
      * Handle award link change event.
      */
     handleInputImageChange = (event: any) => {
-        this.setState({ awardImageLink: event.target.value });
+        this.setState({ awardImageLink: (event.target.value !== "" || event.target.value !== null) ? event.target.value.trim() : null });
     }
 
     /**
@@ -182,14 +182,14 @@ class EditAward extends React.Component<IAwardProps, IEditAwardState> {
                             <Text content={this.state.error} className="field-error-message" error size="medium" />
                         </Flex>
                         <Flex gap="gap.small">
-                            <Text content={t('awardName')} size="medium" />
+                            <Text content={t('awardName')} size="medium" /><Text content="*" className="requiredfield" error size="medium" />
                             <Flex.Item push>
                                 {this.getRequiredFieldError(this.state.isNameValuePresent, t)}
                             </Flex.Item>
                         </Flex>
                         <div className="add-form-input">
                             <Input placeholder={t('awardNamePlaceholder')}
-                                fluid required maxLength={100}
+                                fluid required maxLength={50}
                                 value={this.state.awardName}
                                 onChange={this.handleInputNameChange}
                             />
@@ -197,7 +197,7 @@ class EditAward extends React.Component<IAwardProps, IEditAwardState> {
                     </div>
                     <div>
                         <Flex gap="gap.small">
-                            <Text content={t('awardDescription')} size="medium" />
+                            <Text content={t('awardDescription')} size="medium" /><Text content="*" className="requiredfield" error size="medium" />
                             <Flex.Item push>
                                 {this.getRequiredFieldError(this.state.isDescriptionValuePresent, t)}
                             </Flex.Item>
