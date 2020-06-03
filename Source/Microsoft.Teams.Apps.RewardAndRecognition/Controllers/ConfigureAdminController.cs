@@ -88,13 +88,19 @@ namespace Microsoft.Teams.Apps.RewardAndRecognition.Controllers
             {
                 if (teamId == null)
                 {
+                    this.logger.LogInformation("Mobile test : BadRequest");
                     return this.BadRequest(new { message = "Team ID cannot be empty." });
                 }
+
+                this.logger.LogInformation("Mobile test : GetTeamMembersAsync: " + teamId);
 
                 IEnumerable<TeamsChannelAccount> teamsChannelAccounts = new List<TeamsChannelAccount>();
 
                 var teamDetails = await this.teamStorageProvider.GetTeamDetailAsync(teamId);
+                this.logger.LogInformation("Mobile test : GetTeamDetailAsync:  success" + teamId);
                 string serviceUrl = teamDetails.ServiceUrl;
+
+                this.logger.LogInformation("Mobile test : GetTeamDetailAsync:  serviceUrl" + serviceUrl);
 
                 var conversationReference = new ConversationReference
                 {
