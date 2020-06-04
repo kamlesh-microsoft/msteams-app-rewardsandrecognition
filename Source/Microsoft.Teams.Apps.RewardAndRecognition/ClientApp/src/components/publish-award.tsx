@@ -115,7 +115,6 @@ class PublishAward extends React.Component<WithTranslation, IState>
             this.userEmail = context.upn;
             this.teamId = context.teamId;
 
-            this.appInsights = getApplicationInsightsInstance(this.telemetry, browserHistory);
             let flag = validateUserPartOfTeam(this.teamId!, this.userObjectId!)
             if (flag) {
                 this.getBotSetting();
@@ -128,6 +127,7 @@ class PublishAward extends React.Component<WithTranslation, IState>
             else {
                 navigateToErrorPage('');
             }
+            this.appInsights = getApplicationInsightsInstance(this.telemetry, browserHistory);
         });
     }
 
