@@ -114,21 +114,30 @@ class PublishAward extends React.Component<WithTranslation, IState>
             this.userObjectId = context.userObjectId;
             this.userEmail = context.upn;
             this.teamId = context.teamId;
-
-            let flag = validateUserPartOfTeam(this.teamId!, this.userObjectId!)
-            if (flag) {
-                this.getBotSetting();
-                this.validateUserProfileInTeam();
-                this.getRewardCycle(this.state.isAdminUser);
-                if (this.state.activeCycleId !== undefined || this.state.activeCycleId !== "") {
-                    this.getPublishAwardDetails();
-                }
-            }
-            else {
-                navigateToErrorPage('');
-            }
-            this.appInsights = getApplicationInsightsInstance(this.telemetry, browserHistory);
+            this.getPageDetails();
         });
+    }
+
+    /**
+    * Get page details.
+    */
+    getPageDetails = async () => {
+        let flag = await validateUserPartOfTeam(this.teamId!, this.userObjectId!)
+        if (flag) {
+            await this.getBotSetting();
+            await this.validateUserProfileInTeam();
+            await this.getRewardCycle(this.state.isAdminUser);
+            if (this.state.activeCycleId !== undefined || this.state.activeCycleId !== "") {
+                await this.getPublishAwardDetails();
+            }
+            this.setState({
+                Loader: false
+            });
+        }
+        else {
+            navigateToErrorPage('');
+        }
+        this.appInsights = getApplicationInsightsInstance(this.telemetry, browserHistory);
     }
 
     /**
