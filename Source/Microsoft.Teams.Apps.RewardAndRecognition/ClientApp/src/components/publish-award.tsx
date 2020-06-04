@@ -107,34 +107,28 @@ class PublishAward extends React.Component<WithTranslation, IState>
 
     }
 
-    /** Called once component is mounted. */
+   /** Called once component is mounted. */
     async componentDidMount() {
         microsoftTeams.initialize();
         microsoftTeams.getContext((context) => {
             this.userObjectId = context.userObjectId;
             this.userEmail = context.upn;
             this.teamId = context.teamId;
-            this.getPageDetails();
-        });
-    }
-    
-     /**
-    * Get page details.
-    */
-    getPageDetails = async () => {
-        let flag = await validateUserPartOfTeam(this.teamId!, this.userObjectId!)
-        if (flag) {
-            await this.getBotSetting();
-            await this.validateUserProfileInTeam();
-            await this.getRewardCycle(this.state.isAdminUser);
-            if (this.state.activeCycleId !== undefined || this.state.activeCycleId !== "") {
-                await this.getPublishAwardDetails();
+
+            this.appInsights = getApplicationInsightsInstance(this.telemetry, browserHistory);
+            let flag = validateUserPartOfTeam(this.teamId!, this.userObjectId!)
+            if (flag) {
+                this.getBotSetting();
+                this.validateUserProfileInTeam();
+                this.getRewardCycle(this.state.isAdminUser);
+                if (this.state.activeCycleId !== undefined || this.state.activeCycleId !== "") {
+                    this.getPublishAwardDetails();
+                }
             }
-        }
-        else {
-            navigateToErrorPage('');
-        }
-        this.appInsights = getApplicationInsightsInstance(this.telemetry, browserHistory);
+            else {
+                navigateToErrorPage('');
+            }
+        });
     }
 
     /**
