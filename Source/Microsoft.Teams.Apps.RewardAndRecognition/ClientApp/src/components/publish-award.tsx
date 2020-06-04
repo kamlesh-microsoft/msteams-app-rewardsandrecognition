@@ -114,7 +114,7 @@ class PublishAward extends React.Component<WithTranslation, IState>
             this.userObjectId = context.userObjectId;
             this.userEmail = context.upn;
             this.teamId = context.teamId;
-             let flag = await validateUserPartOfTeam(this.teamId!, this.userObjectId!)
+             let flag = await validateUserPartOfTeam(this.teamId!, this.userObjectId!);
         if (flag) {
             await this.getBotSetting();
             await this.validateUserProfileInTeam();
