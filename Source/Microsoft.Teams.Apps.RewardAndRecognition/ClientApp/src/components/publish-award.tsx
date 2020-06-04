@@ -115,6 +115,7 @@ class PublishAward extends React.Component<WithTranslation, IState>
             this.userEmail = context.upn;
             this.teamId = context.teamId;
             this.getPageDetails();
+        });
     }
     
      /**
